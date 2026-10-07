@@ -1,2 +1,7 @@
 PAI-2-Presentación_NewFormat_v1.pdf
 PAI-2-VPNSSLRoadWarrior_v2.pdf
+
+.env
+
+# Nunca subir la clave privada del servidor
+*.pem
