@@ -1,0 +1,15 @@
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.sqlite3
+.venv/
+
+# Never commit private PKI material or generated certificates.
+pki/**/*.key
+pki/**/*.csr
+pki/**/*.crt
+pki/**/*.pem
+!pki/**/.gitkeep
+
+# Runtime audit output may contain sensitive data.
+evidencias/logs/*.jsonl
