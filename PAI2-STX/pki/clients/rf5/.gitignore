@@ -1,0 +1,3 @@
+# Material local de prueba: nunca versionar credenciales ni certificados generados.
+*
+!.gitignore
