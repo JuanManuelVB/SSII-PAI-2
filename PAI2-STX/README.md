@@ -20,7 +20,8 @@ auditoría y control de sesiones para los perfiles PDI, PAS e Investigadores.
    `pki/scripts/`.
 2. Revisar los parámetros de `config/`, especialmente puertos, rutas PKI,
    versión TLS y perfiles de acceso.
-3. Crear manualmente las cuentas iniciales en `data/usuarios_precargados/usuarios.json`.
+3. Crear manualmente las cuentas en SQLite desde la terminal:
+   `python -m src.server.usuarios crear pdi001 PDI`.
 4. Iniciar el gateway desde `src/server/`.
 5. Registrar e iniciar el cliente BYOD desde `src/client/`.
 6. Ejecutar las pruebas de `tests/` y guardar logs, capturas y resultados en

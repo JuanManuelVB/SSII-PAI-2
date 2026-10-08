@@ -18,7 +18,7 @@ def test_registration_rejects_invalid_credentials():
                 "username": "unknown",
                 "password": "a-strong-password",
                 "device_id": "device-1",
-                "public_key": "invalid",
+                "public_key": "x" * 64,
             },
         )
     assert response.status_code == 401

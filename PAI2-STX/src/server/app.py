@@ -92,17 +92,31 @@ def _conectar() -> sqlite3.Connection:
     DIRECTORIO_DATOS.mkdir(parents=True, exist_ok=True)
     conexion = sqlite3.connect(RUTA_BASE_DATOS)
     conexion.row_factory = sqlite3.Row
+    conexion.execute("PRAGMA foreign_keys = ON")
     return conexion
 
 
 def _inicializar_base_datos() -> None:
-    """Crea la tabla de emparejamientos si todavía no existe."""
+    """Crea las tablas operativas si todavía no existen."""
     with _conectar() as conexion:
+        conexion.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL CHECK(role IN ('PDI', 'PAS', 'INVESTIGADOR')),
+                status TEXT NOT NULL CHECK(status IN ('active', 'blocked', 'revoked')),
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
         conexion.execute(
             """
             CREATE TABLE IF NOT EXISTS device_pairings (
                 device_id TEXT PRIMARY KEY,
-                username TEXT NOT NULL,
+                username TEXT NOT NULL REFERENCES users(username),
                 public_key_fingerprint TEXT NOT NULL UNIQUE,
                 certificate_serial TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL,
@@ -113,14 +127,17 @@ def _inicializar_base_datos() -> None:
 
 
 def _cargar_usuario(nombre_usuario: str) -> dict[str, str] | None:
-    """Busca una cuenta creada manualmente en el fichero de usuarios."""
-    if not RUTA_USUARIOS.exists():
-        return None
-    usuarios = json.loads(RUTA_USUARIOS.read_text(encoding="utf-8"))
-    return next(
-        (usuario for usuario in usuarios if usuario.get("username") == nombre_usuario),
-        None,
-    )
+    """Busca una cuenta creada manualmente en la base de datos."""
+    with _conectar() as conexion:
+        fila = conexion.execute(
+            """
+            SELECT username, password_hash, role, status
+            FROM users
+            WHERE username = ?
+            """,
+            (nombre_usuario,),
+        ).fetchone()
+    return dict(fila) if fila else None
 
 
 def _analizar_clave_publica(valor: str):
