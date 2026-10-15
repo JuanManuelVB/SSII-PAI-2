@@ -145,13 +145,15 @@ def test_certificados_emitidos_y_reutilizados_sin_sustituir_claves(tmp_path):
         "ruta_ca_key": clave_ca,
     }
     assert gestion.emitir_certificados(**args) == {
-        "emitidos": 3, "reutilizados": 0, "total_procesados": 3
+        "emitidos": 3, "reutilizados": 0, "omitidos_revocados": 0,
+        "total_procesados": 3
     }
     clave = destino / "rf5_pdi_001.key"
     previo = clave.read_bytes()
     assert gestion.resumen_usuarios(args["ruta_base_datos"])["certificados_emitidos"] == 3
     assert gestion.emitir_certificados(**args) == {
-        "emitidos": 0, "reutilizados": 3, "total_procesados": 3
+        "emitidos": 0, "reutilizados": 3, "omitidos_revocados": 0,
+        "total_procesados": 3
     }
     assert clave.read_bytes() == previo
     assert gestion.consultar_perfil("rf5_pdi_001", args["ruta_base_datos"])["certificate_status"] == "issued"

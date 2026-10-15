@@ -379,6 +379,7 @@ def emitir_certificados(
 
     emitidos = 0
     reutilizados = 0
+    omitidos_revocados = 0
     directorio_destino.mkdir(parents=True, exist_ok=True)
     # El corte permite emitir solo una muestra durante las pruebas sin
     # alterar el conjunto de usuarios almacenado.
@@ -389,6 +390,24 @@ def emitir_certificados(
         device_id = f"rf5-{perfil}-{numero}-dev01"
         ruta_key = directorio_destino / f"{username}.key"
         ruta_cert = directorio_destino / f"{username}.crt"
+
+        # RF1 (inmutabilidad): se consulta el emparejamiento antes de crear
+        # material nuevo. Este proceso nunca reactiva un dispositivo revocado
+        # ni sustituye la clave pública de uno ya registrado; eso solo puede
+        # hacerse mediante una revocación y re-emisión explícitas.
+        with conectar_base_datos(ruta_base_datos) as conexion:
+            emparejamiento = conexion.execute(
+                """
+                SELECT username, public_key_fingerprint, certificate_serial, status
+                FROM device_pairings
+                WHERE device_id = ?
+                """,
+                (device_id,),
+            ).fetchone()
+
+        if emparejamiento is not None and emparejamiento["status"] != "active":
+            omitidos_revocados += 1
+            continue
 
         # Nunca se debe completar automáticamente un par incompleto: podría
         # asociar una clave nueva a un certificado que ya estaba desplegado.
@@ -407,6 +426,11 @@ def emitir_certificados(
                 raise ErrorRF5(f"Certificado no emitido por la CA configurada: {username}")
             reutilizados += 1
         else:
+            if emparejamiento is not None:
+                raise ErrorRF5(
+                    f"{device_id} ya está emparejado pero falta su material PKI; "
+                    "revoca el dispositivo y realiza una re-emisión explícita"
+                )
             # La clave se genera localmente y se firma con la CA corporativa.
             # En un BYOD real esta clave debe generarse en el dispositivo,
             # no en el gateway.
@@ -437,33 +461,49 @@ def emitir_certificados(
                 serialization.PublicFormat.SubjectPublicKeyInfo,
             )
         ).hexdigest()
-        # La inserción es idempotente por device_id: si el certificado ya
-        # existía, se actualizan sus metadatos sin crear otra fila.
-        with conectar_base_datos(ruta_base_datos) as conexion:
-            conexion.execute(
-                """
-                INSERT INTO device_pairings
-                (device_id, username, public_key_fingerprint, certificate_serial,
-                 certificate_path, created_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, 'active')
-                ON CONFLICT(device_id) DO UPDATE SET
-                    public_key_fingerprint = excluded.public_key_fingerprint,
-                    certificate_serial = excluded.certificate_serial,
-                    certificate_path = excluded.certificate_path,
-                    status = 'active'
-                """,
-                (
-                    device_id,
-                    username,
-                    huella,
-                    str(certificado.serial_number),
-                    f"pki/clients/rf5/{username}.crt",
-                    ahora(),
-                ),
-            )
+        numero_serie = str(certificado.serial_number)
+        if emparejamiento is not None:
+            # El emparejamiento activo ya existe: el material local debe ser
+            # exactamente el registrado. No se actualiza ninguna columna.
+            if (
+                emparejamiento["username"] != username
+                or emparejamiento["public_key_fingerprint"] != huella
+                or emparejamiento["certificate_serial"] != numero_serie
+            ):
+                raise ErrorRF5(
+                    f"El certificado local de {username} no coincide con el "
+                    f"emparejamiento registrado de {device_id}"
+                )
+            continue
+
+        # Alta nueva: INSERT simple, sin ON CONFLICT, para que nunca se
+        # sobrescriba un registro existente.
+        try:
+            with conectar_base_datos(ruta_base_datos) as conexion:
+                conexion.execute(
+                    """
+                    INSERT INTO device_pairings
+                    (device_id, username, public_key_fingerprint, certificate_serial, certificate_path, created_at, status)
+                    VALUES (?, ?, ?, ?, ?, ?, 'active')
+                    """,
+                    (
+                        device_id,
+                        username,
+                        huella,
+                        numero_serie,
+                        f"pki/clients/rf5/{username}.crt",
+                        ahora(),
+                    ),
+                )
+        except sqlite3.IntegrityError as exc:
+            raise ErrorRF5(
+                f"No se puede emparejar {device_id}: la clave pública o el "
+                "número de serie ya están registrados"
+            ) from exc
 
     return {
         "emitidos": emitidos,
         "reutilizados": reutilizados,
+        "omitidos_revocados": omitidos_revocados,
         "total_procesados": emitidos + reutilizados,
     }
