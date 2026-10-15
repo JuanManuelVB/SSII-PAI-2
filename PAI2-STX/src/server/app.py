@@ -132,7 +132,7 @@ def _analizar_clave_publica(valor: str):
 
 def _emitir_certificado(
     nombre_usuario: str, identificador_dispositivo: str, clave_publica
-) -> tuple[str, str]:
+) -> tuple[str, str, str]:
     """Firma un certificado cliente con la CA corporativa configurada."""
     if not RUTA_CERTIFICADO_CA.exists() or not RUTA_CLAVE_CA.exists():
         raise HTTPException(status_code=503, detail="corporate CA is not configured")
@@ -185,7 +185,8 @@ def _emitir_certificado(
     )
     contenido = certificado.public_bytes(serialization.Encoding.PEM)
     ruta_certificado.write_bytes(contenido)
-    return contenido.decode(), str(numero_serie)
+    ruta_relativa = ruta_certificado.relative_to(RAIZ).as_posix()
+    return contenido.decode(), str(numero_serie), ruta_relativa
 
 
 @aplicacion.get("/health")
@@ -220,6 +221,7 @@ def registrar_dispositivo(solicitud: SolicitudRegistro) -> RespuestaRegistro:
         )
     ).hexdigest()
 
+    ruta_certificado_emitido: Path | None = None
     try:
         with _conectar() as conexion:
             if conexion.execute(
@@ -245,24 +247,29 @@ def registrar_dispositivo(solicitud: SolicitudRegistro) -> RespuestaRegistro:
                 )
                 raise HTTPException(status_code=409, detail="public key is already registered")
 
-            certificado, numero_serie = _emitir_certificado(
+            certificado, numero_serie, ruta_certificado = _emitir_certificado(
                 solicitud.username, solicitud.device_id, clave_publica
             )
+            ruta_certificado_emitido = RAIZ / ruta_certificado
             conexion.execute(
                 """
                 INSERT INTO device_pairings
-                (device_id, username, public_key_fingerprint, certificate_serial, created_at, status)
-                VALUES (?, ?, ?, ?, ?, 'active')
+                (device_id, username, public_key_fingerprint, certificate_serial,
+                 certificate_path, created_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, 'active')
                 """,
                 (
                     solicitud.device_id,
                     solicitud.username,
                     huella,
                     numero_serie,
+                    ruta_certificado,
                     _ahora(),
                 ),
             )
     except sqlite3.IntegrityError as exc:
+        if ruta_certificado_emitido is not None:
+            ruta_certificado_emitido.unlink(missing_ok=True)
         raise HTTPException(
             status_code=409,
             detail="device or public key is already registered",
