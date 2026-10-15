@@ -11,6 +11,7 @@ from pki.scripts import pki
 
 
 def test_pki_emite_servidor_cliente_y_revoca(tmp_path):
+    print("[PKI] Creando CA temporal y emitiendo certificados de servidor y cliente")
     pki.crear_ca(tmp_path, dias=30)
     pki.emitir_servidor(tmp_path)
     pki.emitir_cliente(tmp_path, "pdi001")
@@ -26,16 +27,20 @@ def test_pki_emite_servidor_cliente_y_revoca(tmp_path):
         x509.ExtendedKeyUsage
     ).value
     assert pki.verificar(tmp_path, cliente)
+    print("[PKI] Certificados emitidos: serverAuth y clientAuth verificados")
 
+    print("[PKI] Revocando el certificado cliente y generando la CRL")
     pki.revocar(tmp_path, cliente)
     assert not pki.verificar(tmp_path, cliente)
     crl = x509.load_pem_x509_crl(
         (tmp_path / "pki" / "ca" / "ca.crl.pem").read_bytes()
     )
     assert any(item.serial_number == cert_cliente.serial_number for item in crl)
+    print("[PKI] Certificado revocado: verificación negativa y CRL confirmada")
 
 
 def test_cli_pki_funciona(tmp_path):
+    print("[PKI] Ejecutando el comando CLI crear-ca en una raíz temporal")
     comando = [
         sys.executable,
         "-m",
@@ -46,3 +51,4 @@ def test_cli_pki_funciona(tmp_path):
     ]
     resultado = subprocess.run(comando, capture_output=True, text=True, check=False)
     assert resultado.returncode == 0, resultado.stderr
+    print("[PKI] CLI finalizó correctamente")

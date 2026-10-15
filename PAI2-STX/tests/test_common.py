@@ -8,16 +8,20 @@ from src.common.seguridad import crear_hash_contrasena, verificar_contrasena
 
 def test_hash_de_contrasena_se_verifica_sin_guardar_la_original():
     """El hash permite validar la contraseña correcta y rechaza otra."""
+    print("[SEGURIDAD] Generando hash scrypt sin guardar la contraseña original")
     hash_almacenado = crear_hash_contrasena("Una contraseña segura")
 
     assert "Una contraseña segura" not in hash_almacenado
+    print("[SEGURIDAD] Verificando contraseña correcta")
     assert verificar_contrasena("Una contraseña segura", hash_almacenado)
+    print("[SEGURIDAD] Verificando que una contraseña incorrecta se rechaza")
     assert not verificar_contrasena("Contraseña incorrecta", hash_almacenado)
 
 
 def test_base_de_datos_crea_el_esquema_comun(tmp_path):
     """El esquema contiene usuarios y emparejamientos en la misma SQLite."""
     ruta = tmp_path / "rf1.sqlite3"
+    print(f"[BD] Inicializando base SQLite temporal: {ruta.name}")
     inicializar_base_datos(ruta)
 
     with conectar_base_datos(ruta) as conexion:
@@ -36,3 +40,4 @@ def test_base_de_datos_crea_el_esquema_comun(tmp_path):
     assert {"username", "password_hash", "role", "status", "origin"}.issubset(
         columnas_usuarios
     )
+    print("[BD] Tablas users y device_pairings creadas con sus columnas principales")

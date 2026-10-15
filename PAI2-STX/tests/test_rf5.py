@@ -28,6 +28,7 @@ def _usuarios(ruta):
 
 
 def test_precarga_3_roles_guarda_hashes_y_no_password_plana(tmp_path):
+    print("[RF5] Precargando tres cuentas, una por cada rol")
     parametros = rutas(tmp_path)
     resultado = gestion.precargar_usuarios(3, **parametros)
     usuarios = _usuarios(parametros["ruta_base_datos"])
@@ -43,9 +44,11 @@ def test_precarga_3_roles_guarda_hashes_y_no_password_plana(tmp_path):
         assert usuario["password_hash"].startswith("scrypt$")
         assert verificar_contrasena(cuenta["password"], usuario["password_hash"])
         assert cuenta["password"].encode() not in texto_db
+    print("[RF5] Roles, hashes scrypt y ausencia de contraseñas planas verificados")
 
 
 def test_consulta_de_perfil_activo_y_sin_datos_sensibles(tmp_path):
+    print("[RF5] Precargando cuentas y consultando el perfil de una cuenta PAS")
     parametros = rutas(tmp_path)
     gestion.precargar_usuarios(3, **parametros)
     ruta = parametros["ruta_base_datos"]
@@ -62,9 +65,11 @@ def test_consulta_de_perfil_activo_y_sin_datos_sensibles(tmp_path):
             ("rf5_pas_001",),
         )
     assert gestion.consultar_perfil("rf5_pas_001", ruta) is None
+    print("[RF5] Perfil activo consultado y cuenta revocada correctamente ocultada")
 
 
 def test_repetir_precarga_es_idempotente_y_respeta_usuario_manual(tmp_path):
+    print("[RF5] Creando una cuenta manual que colisiona con una cuenta RF5")
     parametros = rutas(tmp_path)
     ruta = parametros["ruta_base_datos"]
     inicializar_base_datos(ruta)
@@ -88,15 +93,18 @@ def test_repetir_precarga_es_idempotente_y_respeta_usuario_manual(tmp_path):
         ).fetchone()
     assert manual["origin"] == "MANUAL"
     assert verificar_contrasena("manual", manual["password_hash"])
+    print("[RF5] Colisión detectada sin sobrescribir la cuenta manual")
 
 
 def test_300_usuarios_repartidos_y_sin_duplicados(tmp_path):
+    print("[RF5] Precargando 300 cuentas y comprobando el reparto por roles")
     parametros = rutas(tmp_path)
     assert gestion.precargar_usuarios(300, **parametros)["nuevos"] == 300
     resumen = gestion.resumen_usuarios(parametros["ruta_base_datos"])
     assert resumen["por_rol"] == {"PDI": 100, "PAS": 100, "INVESTIGADOR": 100}
     assert resumen["total_rf5"] == 300
     assert gestion.precargar_usuarios(300, **parametros)["nuevos"] == 0
+    print("[RF5] 300 cuentas repartidas, sin duplicados y recarga idempotente")
 
 
 def _ca_temporal(tmp_path):
@@ -125,6 +133,7 @@ def _ca_temporal(tmp_path):
 
 
 def test_certificados_emitidos_y_reutilizados_sin_sustituir_claves(tmp_path):
+    print("[RF5] Emitiendo certificados para las cuentas precargadas")
     parametros = rutas(tmp_path)
     gestion.precargar_usuarios(3, **parametros)
     cert_ca, clave_ca = _ca_temporal(tmp_path)
@@ -146,9 +155,11 @@ def test_certificados_emitidos_y_reutilizados_sin_sustituir_claves(tmp_path):
     }
     assert clave.read_bytes() == previo
     assert gestion.consultar_perfil("rf5_pdi_001", args["ruta_base_datos"])["certificate_status"] == "issued"
+    print("[RF5] Certificados emitidos y reutilizados sin sustituir claves privadas")
 
 
 def test_no_emite_una_ca_inexistente_ni_altera_la_base(tmp_path):
+    print("[RF5] Intentando emitir certificados sin una CA existente")
     parametros = rutas(tmp_path)
     gestion.precargar_usuarios(3, **parametros)
     antes = parametros["ruta_base_datos"].read_bytes()
@@ -160,3 +171,4 @@ def test_no_emite_una_ca_inexistente_ni_altera_la_base(tmp_path):
             ruta_ca_key=tmp_path / "ca-no-existe.key",
         )
     assert parametros["ruta_base_datos"].read_bytes() == antes
+    print("[RF5] Emisión rechazada y base de datos conservada sin cambios")

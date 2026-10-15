@@ -37,6 +37,7 @@ def _preparar_usuario(ruta_base_datos, username: str = "rf1_pdi") -> None:
 
 def test_registro_emite_certificado_y_persiste_emparejamiento(tmp_path, monkeypatch):
     """El alta debe emitir un certificado y guardar su vínculo completo."""
+    print("[RF1] Preparando usuario activo, CA temporal y base SQLite aislada")
     ruta_base_datos = tmp_path / "rf1.sqlite3"
     _preparar_usuario(ruta_base_datos)
     monkeypatch.setattr(server, "RUTA_CERTIFICADO_CA", tmp_path / "ca.crt")
@@ -61,6 +62,7 @@ def test_registro_emite_certificado_y_persiste_emparejamiento(tmp_path, monkeypa
     )
 
     clave_publica = _clave_publica_pem()
+    print("[RF1] Enviando clave pública RSA para registrar el dispositivo BYOD")
     with TestClient(server.app) as cliente:
         respuesta = cliente.post(
             "/api/v1/devices/register",
@@ -77,6 +79,7 @@ def test_registro_emite_certificado_y_persiste_emparejamiento(tmp_path, monkeypa
     assert datos["status"] == "registered"
     assert datos["certificate"].startswith("-----BEGIN CERTIFICATE-----")
     assert datos["ca_certificate"].startswith("-----BEGIN CERTIFICATE-----")
+    print("[RF1] Certificado cliente y certificado CA devueltos por la API")
 
     with conectar_base_datos(ruta_base_datos) as conexion:
         emparejamiento = conexion.execute(
@@ -91,6 +94,10 @@ def test_registro_emite_certificado_y_persiste_emparejamiento(tmp_path, monkeypa
     assert emparejamiento["certificate_serial"] == datos["certificate_serial"]
     assert emparejamiento["certificate_path"] == "pki/clients/byod-rf1-001.crt"
     assert emparejamiento["status"] == "active"
+    print(
+        "[RF1] Emparejamiento persistido: usuario, dispositivo, huella, "
+        "serie, ruta y estado activo"
+    )
 
     certificado = server.x509.load_pem_x509_certificate(
         (tmp_path / "pki" / "clients" / "byod-rf1-001.crt").read_bytes()
@@ -99,10 +106,12 @@ def test_registro_emite_certificado_y_persiste_emparejamiento(tmp_path, monkeypa
         server.x509.ExtendedKeyUsage
     ).value
     assert ExtendedKeyUsageOID.CLIENT_AUTH in eku
+    print("[RF1] Certificado almacenado con uso exclusivo clientAuth")
 
 
 def test_registro_rechaza_reutilizar_dispositivo_o_clave(tmp_path, monkeypatch):
     """Un dispositivo y una clave pública no se pueden volver a emparejar."""
+    print("[RF1] Registrando el primer emparejamiento válido")
     ruta_base_datos = tmp_path / "rf1.sqlite3"
     _preparar_usuario(ruta_base_datos)
     monkeypatch.setattr(server, "RUTA_CERTIFICADO_CA", tmp_path / "ca.crt")
@@ -145,5 +154,8 @@ def test_registro_rechaza_reutilizar_dispositivo_o_clave(tmp_path, monkeypatch):
         )
 
     assert primera.status_code == 201
+    print("[RF1] Intentando reutilizar el mismo device_id con otra clave")
     assert mismo_dispositivo.status_code == 409
+    print("[RF1] Intentando reutilizar la misma clave con otro device_id")
     assert misma_clave.status_code == 409
+    print("[RF1] Ambas reutilizaciones fueron rechazadas con HTTP 409")

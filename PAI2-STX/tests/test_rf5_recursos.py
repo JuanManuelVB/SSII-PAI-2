@@ -53,6 +53,7 @@ def _crear_ca(tmp_path):
 
 def test_csv_invalido_se_rechaza_sin_sobrescribirlo(tmp_path):
     """Un CSV manipulado no debe ser aceptado como fuente de credenciales."""
+    print("[RF5] Escribiendo un CSV inválido y comprobando que no se sobrescribe")
     rutas = _rutas(tmp_path)
     rutas["ruta_credenciales"].write_text("username,password\ncuenta,secreta\n")
 
@@ -60,10 +61,12 @@ def test_csv_invalido_se_rechaza_sin_sobrescribirlo(tmp_path):
         gestion.precargar_usuarios(3, **rutas)
 
     assert rutas["ruta_credenciales"].read_text() == "username,password\ncuenta,secreta\n"
+    print("[RF5] CSV inválido rechazado y contenido original conservado")
 
 
 def test_cli_precargar_y_resumen_son_ejecutables(tmp_path):
     """Comprueba la interfaz real de terminal sin depender de una shell."""
+    print("[RF5] Ejecutando el CLI de precarga con una base temporal")
     proceso = subprocess.run(
         [
             sys.executable,
@@ -84,10 +87,12 @@ def test_cli_precargar_y_resumen_son_ejecutables(tmp_path):
     )
     assert proceso.returncode == 0, proceso.stderr
     assert '"nuevos": 3' in proceso.stdout
+    print("[RF5] CLI finalizó y comunicó tres cuentas nuevas")
 
 
 def test_emision_registra_propiedades_de_certificado_cliente(tmp_path):
     """Comprueba EKU clientAuth, huella pública y relación usuario-dispositivo."""
+    print("[RF5] Precargando usuarios y emitiendo un certificado cliente")
     rutas = _rutas(tmp_path)
     gestion.precargar_usuarios(3, **rutas)
     ruta_ca, ruta_key = _crear_ca(tmp_path)
@@ -117,3 +122,4 @@ def test_emision_registra_propiedades_de_certificado_cliente(tmp_path):
         "rf5-inv-001-dev01",
         "pki/clients/rf5/rf5_inv_001.crt",
     )
+    print("[RF5] clientAuth, dispositivo, usuario y ruta persistida verificados")
