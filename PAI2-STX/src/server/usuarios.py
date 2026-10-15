@@ -7,7 +7,14 @@ import getpass
 import secrets
 import sqlite3
 
-from .app import _ahora, _auditar, _conectar, _crear_hash_contrasena, _inicializar_base_datos
+from src.common.base_datos import (
+    ahora,
+    conectar_base_datos,
+    inicializar_base_datos,
+)
+from src.common.seguridad import crear_hash_contrasena
+
+from .app import _auditar
 
 ROLES_VALIDOS = ("PDI", "PAS", "INVESTIGADOR")
 
@@ -24,12 +31,12 @@ def crear_usuario(nombre_usuario: str, rol: str) -> None:
     if contrasena != confirmacion:
         raise ValueError("Las contraseñas no coinciden")
 
-    marca_tiempo = _ahora()
+    marca_tiempo = ahora()
     sal = secrets.token_bytes(16)
-    hash_contrasena = _crear_hash_contrasena(contrasena, sal)
-    _inicializar_base_datos()
+    hash_contrasena = crear_hash_contrasena(contrasena, sal)
+    inicializar_base_datos()
     try:
-        with _conectar() as conexion:
+        with conectar_base_datos() as conexion:
             conexion.execute(
                 """
                 INSERT INTO users

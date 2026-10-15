@@ -8,7 +8,7 @@ auditoría y control de sesiones para los perfiles PDI, PAS e Investigadores.
 - `pki/`: autoridad certificadora, certificados y scripts de gestión PKI.
 - `src/`: gateway, cliente BYOD y utilidades comunes.
 - `config/`: parámetros TLS, rutas, puertos y perfiles de acceso.
-- `data/usuarios_precargados/`: cuentas iniciales requeridas por RF5.
+- `data/`: base SQLite compartida (`rf1.sqlite3`) para RF1 y RF5.
 - `tests/`: pruebas funcionales, de seguridad y casos negativos.
 - `bench/`: generación de carga y resultados de comparación TLS/sin cifrar.
 - `evidencias/`: capturas, logs y evidencias de ataques opcionales.
@@ -22,6 +22,8 @@ auditoría y control de sesiones para los perfiles PDI, PAS e Investigadores.
    versión TLS y perfiles de acceso.
 3. Crear manualmente las cuentas en SQLite desde la terminal:
    `python -m src.server.usuarios crear pdi001 PDI`.
+   Para precargar las cuentas de prueba de RF5, usar:
+   `python -m src.rf5.cli precargar --total 300`.
 4. Iniciar el gateway desde `src/server/`.
 5. Registrar e iniciar el cliente BYOD desde `src/client/`.
 6. Ejecutar las pruebas de `tests/` y guardar logs, capturas y resultados en

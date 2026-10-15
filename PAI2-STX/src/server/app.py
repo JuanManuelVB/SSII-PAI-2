@@ -6,32 +6,48 @@ import hashlib
 import json
 import logging
 import os
-import secrets
 import sqlite3
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
+
+from src.common.base_datos import (
+    ahora,
+    conectar_base_datos,
+    inicializar_base_datos,
+)
+from src.common.seguridad import verificar_contrasena
 
 RAIZ = Path(__file__).resolve().parents[2]
 DIRECTORIO_DATOS = RAIZ / "data"
 DIRECTORIO_PKI = RAIZ / "pki"
-RUTA_BASE_DATOS = DIRECTORIO_DATOS / "rf1.sqlite3"
 RUTA_AUDITORIA = RAIZ / "evidencias" / "logs" / "rf1-audit.jsonl"
 RUTA_CERTIFICADO_CA = DIRECTORIO_PKI / "ca" / "ca.crt"
 RUTA_CLAVE_CA = DIRECTORIO_PKI / "ca" / "ca.key"
 DIRECTORIO_CERTIFICADOS_CLIENTE = DIRECTORIO_PKI / "clients"
-RUTA_USUARIOS = DIRECTORIO_DATOS / "usuarios_precargados" / "usuarios.json"
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 registrador = logging.getLogger(__name__)
 
-aplicacion = FastAPI(title="PAI2-STX RF1 API", version="0.1.0")
+@asynccontextmanager
+async def ciclo_de_vida(_aplicacion: FastAPI):
+    """Inicializa la base de datos cuando FastAPI crea la aplicación."""
+    _inicializar_base_datos()
+    yield
+
+
+aplicacion = FastAPI(
+    title="PAI2-STX RF1 API",
+    version="0.1.0",
+    lifespan=ciclo_de_vida,
+)
 # Alias de compatibilidad para el comando estándar de Uvicorn.
 app = aplicacion
 
@@ -60,75 +76,33 @@ class RespuestaRegistro(BaseModel):
     status: str
 
 
-def _ahora() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
 def _auditar(evento: str, **campos: str) -> None:
     """Escribe un evento estructurado sin registrar contraseñas ni claves."""
     RUTA_AUDITORIA.parent.mkdir(parents=True, exist_ok=True)
-    registro = {"timestamp": _ahora(), "event": evento, **campos}
+    registro = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event": evento,
+        **campos,
+    }
     with RUTA_AUDITORIA.open("a", encoding="utf-8") as archivo:
         archivo.write(json.dumps(registro, sort_keys=True) + "\n")
 
 
-def _crear_hash_contrasena(contrasena: str, sal: bytes) -> str:
-    resumen = hashlib.scrypt(contrasena.encode(), salt=sal, n=2**14, r=8, p=1)
-    return f"scrypt${sal.hex()}${resumen.hex()}"
+def _ahora() -> str:
+    """Mantiene el nombre interno anterior usando la utilidad común."""
+    return ahora()
 
 
-def _verificar_contrasena(contrasena: str, codificada: str) -> bool:
-    try:
-        algoritmo, sal_hex, resumen_hex = codificada.split("$")
-        if algoritmo != "scrypt":
-            return False
-        candidata = _crear_hash_contrasena(contrasena, bytes.fromhex(sal_hex))
-        return secrets.compare_digest(candidata, f"scrypt${sal_hex}${resumen_hex}")
-    except (ValueError, TypeError):
-        return False
-
-
-def _conectar() -> sqlite3.Connection:
-    DIRECTORIO_DATOS.mkdir(parents=True, exist_ok=True)
-    conexion = sqlite3.connect(RUTA_BASE_DATOS)
-    conexion.row_factory = sqlite3.Row
-    conexion.execute("PRAGMA foreign_keys = ON")
-    return conexion
-
-
-def _inicializar_base_datos() -> None:
-    """Crea las tablas operativas si todavía no existen."""
-    with _conectar() as conexion:
-        conexion.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL CHECK(role IN ('PDI', 'PAS', 'INVESTIGADOR')),
-                status TEXT NOT NULL CHECK(status IN ('active', 'blocked', 'revoked')),
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        conexion.execute(
-            """
-            CREATE TABLE IF NOT EXISTS device_pairings (
-                device_id TEXT PRIMARY KEY,
-                username TEXT NOT NULL REFERENCES users(username),
-                public_key_fingerprint TEXT NOT NULL UNIQUE,
-                certificate_serial TEXT NOT NULL UNIQUE,
-                created_at TEXT NOT NULL,
-                status TEXT NOT NULL CHECK(status IN ('active', 'revoked'))
-            )
-            """
-        )
+# Estos alias conservan la compatibilidad con los tests y módulos existentes
+# mientras RF1 pasa a utilizar las implementaciones centralizadas.
+_conectar = conectar_base_datos
+_inicializar_base_datos = inicializar_base_datos
+_verificar_contrasena = verificar_contrasena
 
 
 def _cargar_usuario(nombre_usuario: str) -> dict[str, str] | None:
     """Busca una cuenta creada manualmente en la base de datos."""
-    with _conectar() as conexion:
+    with conectar_base_datos() as conexion:
         fila = conexion.execute(
             """
             SELECT username, password_hash, role, status
@@ -175,7 +149,11 @@ def _emitir_certificado(
             status_code=503, detail="corporate CA cannot be loaded"
         ) from exc
 
+    # El certificado cliente solo sirve para autenticación de cliente. Además,
+    # nunca debe durar más que la CA que lo firma.
     numero_serie = x509.random_serial_number()
+    inicio = datetime.now(timezone.utc) - timedelta(minutes=5)
+    fin = min(inicio + timedelta(days=365), certificado_ca.not_valid_after_utc)
     certificado = (
         x509.CertificateBuilder()
         .subject_name(
@@ -189,10 +167,14 @@ def _emitir_certificado(
         .issuer_name(certificado_ca.subject)
         .public_key(clave_publica)
         .serial_number(numero_serie)
-        .not_valid_before(datetime.now(timezone.utc))
-        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+        .not_valid_before(inicio)
+        .not_valid_after(fin)
         .add_extension(
             x509.BasicConstraints(ca=False, path_length=None),
+            critical=True,
+        )
+        .add_extension(
+            x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]),
             critical=True,
         )
         .sign(clave_ca, hashes.SHA256())
@@ -204,11 +186,6 @@ def _emitir_certificado(
     contenido = certificado.public_bytes(serialization.Encoding.PEM)
     ruta_certificado.write_bytes(contenido)
     return contenido.decode(), str(numero_serie)
-
-
-@aplicacion.on_event("startup")
-def iniciar_aplicacion() -> None:
-    _inicializar_base_datos()
 
 
 @aplicacion.get("/health")
