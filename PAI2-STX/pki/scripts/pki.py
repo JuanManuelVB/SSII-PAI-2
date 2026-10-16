@@ -139,6 +139,8 @@ def crear_ca(raiz: Path, nombre: str = "PAI2-STX Corporate CA", dias: int = 3650
         .not_valid_before(inicio)
         .not_valid_after(inicio + timedelta(days=dias))
         .add_extension(x509.BasicConstraints(ca=True, path_length=1), critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(clave.public_key()), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(clave.public_key()), critical=False)
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -187,6 +189,8 @@ def _crear_certificado(
         .not_valid_before(inicio)
         .not_valid_after(fin)
         .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(clave.public_key()), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca.public_key()), critical=False)
         .add_extension(
             x509.ExtendedKeyUsage([uso]),
             critical=True,

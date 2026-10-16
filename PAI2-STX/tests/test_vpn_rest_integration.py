@@ -24,6 +24,8 @@ def mock_api():
             return httpx.Response(200, json={})
         if req.url.path == '/api/vpn/client/disconnect':
             return httpx.Response(200, json={})
+        if req.url.path == '/api/server/restart':
+            return httpx.Response(200, text='')
         if req.url.path == '/api/users/create':
             return httpx.Response(201, json={})
         raise AssertionError('Ruta inesperada: '+req.url.path)
@@ -96,7 +98,7 @@ def test_logout_bloquea_corta_y_revoca_cuenta_completa(monkeypatch, tmp_path):
     with conectar_base_datos(db) as c:
         assert c.execute('SELECT COUNT(*) FROM sessions WHERE revoked_at IS NULL').fetchone()[0]==0
     ops=[path for _,path,_ in calls if path != '/api/auth/login/userpassword']
-    assert ops==['/api/userprop/set','/api/vpn/client/disconnect']
+    assert ops==['/api/userprop/set','/api/server/restart','/api/vpn/client/disconnect']
 
 
 def test_fallo_rest_revoca_tokens_de_aplicacion(monkeypatch,tmp_path):

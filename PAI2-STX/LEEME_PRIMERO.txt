@@ -1,0 +1,16 @@
+PARCHE PARA PAI2-STX INTEGRADO - LABORATORIO EN UN COMANDO
+
+1) Descomprime este ZIP sobre el proyecto PAI2-STX integrado y revisa los cambios.
+2) Haz commit/push solamente cuando hayas comprobado que no incluyes secretos.
+3) Cada compañero, con Ubuntu WSL2 instalado, desde PowerShell en la raíz:
+
+       wsl bash vpn/scripts/iniciar_laboratorio.sh
+
+El instalador crea su entorno local independiente con los mismos nombres de
+usuarios RF5 (contraseñas distintas), configura Access Server y levanta FastAPI.
+No necesita conectarse a tu ordenador.
+
+LEER: docs/INSTALACION_UN_COMANDO.md
+
+NOTA: NO se ha ejecutado contra WSL2/Access Server reales en esta sesión; sí
+se han probado los cambios de código y certificados X.509 con OpenSSL estricto.

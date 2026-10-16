@@ -325,6 +325,8 @@ def _crear_certificado(username: str, device_id: str, cert_ca, clave_ca):
         .not_valid_before(ahora_utc - timedelta(minutes=5))
         .not_valid_after(limite)
         .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(clave.public_key()), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(cert_ca.public_key()), critical=False)
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,

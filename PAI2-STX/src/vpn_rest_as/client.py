@@ -100,7 +100,7 @@ class AccessServerClient:
                 response = client.request(method, route, json=payload, headers=headers)
                 # Este endpoint documenta 200 sin objeto JSON obligatorio.
                 # La validación estricta de los demás endpoints no cambia.
-                if route == '/api/userprop/set':
+                if route in ('/api/userprop/set', '/api/server/restart?restartMode=warm'):
                     return self._confirmar_respuesta_actualizacion(response)
                 return self._json(response)
         except httpx.RequestError as exc:
@@ -144,9 +144,14 @@ class AccessServerClient:
         """
         if not isinstance(username, str) or not username or len(username) > 64:
             raise ValueError("usuario VPN inválido")
-        return self._authenticated('POST', '/api/userprop/set', [
+        resultado = self._authenticated('POST', '/api/userprop/set', [
             {'name': username, 'deny': not permitido, 'autologin': False}
         ])
+        # La modificación de userprop puede quedar pendiente en Access Server.
+        # Aplicamos cambios vía API REST y no declaramos acceso autorizado
+        # hasta que el servidor haya aceptado solicitar un reinicio warm.
+        self._authenticated('POST', '/api/server/restart?restartMode=warm')
+        return resultado
 
     def crear_usuario_bloqueado(self, username: str) -> dict:
         """Da de alta UNA identidad de laboratorio, inhabilitada por defecto.
