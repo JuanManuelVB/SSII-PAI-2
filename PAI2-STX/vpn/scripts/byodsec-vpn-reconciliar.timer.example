@@ -1,0 +1,10 @@
+[Unit]
+Description=BYODSEC - verificar caducidad RF2/RF4 cada 1 min
+
+[Timer]
+OnBootSec=60sec
+OnUnitActiveSec=60sec
+Unit=byodsec-vpn-reconciliar.service
+
+[Install]
+WantedBy=timers.target

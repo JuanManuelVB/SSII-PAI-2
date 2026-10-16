@@ -1,0 +1,4 @@
+# Añadir las líneas siguientes a /etc/openvpn/server/byodsec.conf (WSL2).
+# Crear ANTES el grupo byodsec-vpn y /run/byodsec-vpn con permisos restringidos.
+management /run/byodsec-vpn/management.sock unix
+management-client-group byodsec-vpn

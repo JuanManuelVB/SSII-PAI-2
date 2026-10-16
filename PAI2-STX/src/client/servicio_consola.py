@@ -189,6 +189,16 @@ class ClienteConsola:
             token = datos["access_token"]
             if not isinstance(token, str) or not token:
                 raise ErrorConsola("El gateway no devolvió una sesión válida")
+            # Solo en el despliegue VPN REST: autorización administrativa DESPUÉS
+            # de RF2/mTLS, nunca antes. Access Server inicia con deny=true.
+            if os.getenv('BYODSEC_VPN_REST') == '1':
+                habilitar = cliente.post('/api/v1/vpn/authorize',
+                                         headers={'Authorization': f'Bearer {token}'})
+                if habilitar.status_code != 200:
+                    # No se anuncia una sesión iniciada si no se ha logrado
+                    # habilitar VPN. La cuenta AS permanece bloqueada.
+                    raise ErrorConsola('RF2 válido, pero la VPN no pudo autorizarse: '
+                                       + descripcion_error_http(habilitar))
             self._http = cliente
             self._contexto = contexto
             self._token = token

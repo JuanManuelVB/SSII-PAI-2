@@ -163,7 +163,7 @@ def logout_interactivo(cliente: ClienteConsola) -> None:
         consola.print("[green]✓[/] Reutilización del token: HTTP 401 (rechazo esperado)")
     elif resultado.rechazo_comprobado is False:
         consola.print(f"[bold red]ALERTA: rechazo NO demostrado (HTTP {resultado.codigo_comprobacion})[/]")
-    consola.print("[dim]Nota: esto no desmonta todavía un túnel VPN TUN/TAP real.[/]")
+    consola.print("[dim]En modo BYODSEC_VPN_REST=1, el servidor solicita bloqueo y desconexión de la VPN por REST.[/]")
 
 
 def estadisticas_rf5() -> None:

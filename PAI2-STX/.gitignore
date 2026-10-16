@@ -13,3 +13,21 @@ pki/**/*.pem
 
 # Runtime audit output may contain sensitive data.
 evidencias/logs/*.jsonl
+
+# VPN / Access Server private materials
+.env
+.env.*
+!*.example
+*.ovpn
+vpn/**/*.key
+vpn/**/*.pem
+vpn/**/*.crt
+vpn/**/*.p12
+pki/clients/rf5/credenciales.csv
+data/backups/
+*.tar
+
+.venv-wsl/
+*.ovpn
+*.key
+pki/clients/rf5/credenciales.csv
