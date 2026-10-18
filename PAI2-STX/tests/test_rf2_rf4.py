@@ -16,9 +16,11 @@ from fastapi.testclient import TestClient
 from pki.scripts import pki
 from src.common.base_datos import conectar_base_datos, inicializar_base_datos
 from src.common.seguridad import crear_hash_contrasena
-from src.gateway.app import app
+from src.gateway.app import crear_app
+
+app = crear_app(vpn_rest=False)  # RF2/RF4 sin Access Server
 from src.rf2.autenticacion import mensaje_a_firmar
-from src.rf2.sesiones import _hash_token, validar_sesion
+from src.rf2.sesiones import _hash_token
 from src.rf4.cierre import revocar_sesion
 
 

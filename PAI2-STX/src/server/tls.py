@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import ssl
-import sqlite3
 from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 
-from src.common.base_datos import conectar_base_datos
 from src.common.config_tls import (
     RUTA_CERTIFICADO_CA,
     RUTA_CERTIFICADO_SERVIDOR,
@@ -45,9 +43,9 @@ def crear_contexto_tls_servidor(
 ) -> ssl.SSLContext:
     """Crea un contexto de servidor TLS 1.3 con certificados cliente obligatorios.
 
-    La comprobación criptográfica del certificado cliente la realiza OpenSSL
-    usando la CA indicada. La asociación posterior con ``device_pairings`` y
-    la comprobación de la CRL se añadirán en la siguiente fase.
+    OpenSSL valida firma, vigencia y CA del certificado cliente durante el
+    handshake. La asociación con ``device_pairings`` y la lista de revocados
+    se comprueban después en RF2 (``src.rf2``).
     """
     _comprobar_archivos_tls(ruta_ca, ruta_certificado, ruta_clave)
 
@@ -82,27 +80,3 @@ def obtener_huella_clave_certificado(certificado_der: bytes) -> str:
     )
     return hashlib.sha256(clave_publica_der).hexdigest()
 
-
-def buscar_emparejamiento_certificado(
-    certificado_der: bytes,
-    *,
-    ruta_base_datos: Path,
-) -> sqlite3.Row | None:
-    """Busca un certificado en los emparejamientos activos de RF1.
-
-    ``SSLContext`` ya debe haber validado la firma, la vigencia y la CA.
-    Esta consulta añade la autorización de la aplicación: un certificado
-    criptográficamente válido pero no emparejado no puede usar el gateway.
-    """
-    huella = obtener_huella_clave_certificado(certificado_der)
-    with conectar_base_datos(ruta_base_datos) as conexion:
-        return conexion.execute(
-            """
-            SELECT device_id, username, public_key_fingerprint,
-                   certificate_serial, certificate_path, status
-            FROM device_pairings
-            WHERE public_key_fingerprint = ?
-              AND status = 'active'
-            """,
-            (huella,),
-        ).fetchone()

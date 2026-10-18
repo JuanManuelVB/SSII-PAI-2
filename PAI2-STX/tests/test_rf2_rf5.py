@@ -11,7 +11,9 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from fastapi.testclient import TestClient
 
 from pki.scripts import pki
-from src.gateway.app import app
+from src.gateway.app import crear_app
+
+app = crear_app(vpn_rest=False)  # RF2/RF4 sin Access Server
 from src.rf5.gestion import precargar_usuarios, emitir_certificados
 from src.rf2.autenticacion import mensaje_a_firmar
 

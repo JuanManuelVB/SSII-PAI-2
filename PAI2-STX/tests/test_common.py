@@ -1,6 +1,5 @@
 """Pruebas aisladas de la capa común de seguridad y base de datos."""
 
-import sqlite3
 
 from src.common.base_datos import conectar_base_datos, inicializar_base_datos
 from src.common.seguridad import crear_hash_contrasena, verificar_contrasena

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 

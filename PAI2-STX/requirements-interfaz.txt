@@ -1,2 +1,0 @@
-# Instalar encima de requirements.txt (FastAPI, httpx, cryptography ya presentes)
-rich>=13,<16

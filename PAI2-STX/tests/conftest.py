@@ -1,8 +1,32 @@
-"""Salida legible de las pruebas cuando se ejecutan con ``pytest -s``."""
+"""Configuración común de pytest.
+
+* Aísla cada prueba: ninguna escribe en ``data/``, ``pki/`` ni ``evidencias/``
+  del proyecto (se redirigen a ``tmp_path``) y se ignoran las variables
+  ``BYODSEC_*`` del laboratorio para no hablar con un Access Server real.
+* Muestra el inicio y resultado de cada escenario con ``pytest -s``.
+"""
 
 from __future__ import annotations
 
+import os
+
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def aislar_entorno(monkeypatch, tmp_path):
+    for variable in list(os.environ):
+        if variable.startswith("BYODSEC_"):
+            monkeypatch.delenv(variable)
+    import src.rf4.auditoria as auditoria_rf4
+    import src.rf4.rutas as rutas_rf4
+    import src.server.app as rf1
+    import src.vpn_rest_as.rf4 as rf4_vpn
+
+    monkeypatch.setattr(rf1, "RUTA_BASE_DATOS", tmp_path / "rf1-aislada.sqlite3")
+    monkeypatch.setattr(rf1, "RUTA_AUDITORIA", tmp_path / "rf1-audit.jsonl")
+    for modulo in (auditoria_rf4, rutas_rf4, rf4_vpn):
+        monkeypatch.setattr(modulo, "RUTA_AUDITORIA", tmp_path / "rf4-audit.jsonl")
 
 
 def pytest_runtest_logstart(nodeid: str, location) -> None:

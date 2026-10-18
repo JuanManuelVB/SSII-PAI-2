@@ -26,11 +26,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 RAIZ = Path(__file__).resolve().parents[2]
-DIRECTORIO_CA = RAIZ / "pki" / "ca"
-DIRECTORIO_SERVIDOR = RAIZ / "pki" / "server"
-DIRECTORIO_CLIENTES = RAIZ / "pki" / "clients"
-RUTA_REVOCADOS = DIRECTORIO_CA / "revoked.json"
-RUTA_CRL = DIRECTORIO_CA / "ca.crl.pem"
 
 
 class ErrorPKI(ValueError):
@@ -332,7 +327,7 @@ def main() -> int:
     revocacion = sub.add_parser("revocar")
     revocacion.add_argument("certificado", type=Path)
     revocacion.add_argument("--razon", default="cessationOfOperation")
-    crl = sub.add_parser("generar-crl")
+    sub.add_parser("generar-crl")
     validar = sub.add_parser("verificar")
     validar.add_argument("certificado", type=Path)
     args = parser.parse_args()

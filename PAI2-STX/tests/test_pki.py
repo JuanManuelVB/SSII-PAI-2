@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtendedKeyUsageOID
 
 from pki.scripts import pki
@@ -52,3 +51,19 @@ def test_cli_pki_funciona(tmp_path):
     resultado = subprocess.run(comando, capture_output=True, text=True, check=False)
     assert resultado.returncode == 0, resultado.stderr
     print("[PKI] CLI finalizó correctamente")
+
+
+def test_certificados_nuevos_tienen_aki_ski_y_validacion_estricta(tmp_path):
+    pki.crear_ca(tmp_path)
+    pki.emitir_servidor(tmp_path, nombre="localhost")
+    root = tmp_path / "pki"
+    for target in ("ca/ca.crt", "server/server.crt"):
+        cert = x509.load_pem_x509_certificate((root / target).read_bytes())
+        cert.extensions.get_extension_for_class(x509.SubjectKeyIdentifier)
+        cert.extensions.get_extension_for_class(x509.AuthorityKeyIdentifier)
+    salida = subprocess.run([
+        "openssl", "verify", "-x509_strict", "-purpose", "sslserver",
+        "-verify_hostname", "localhost", "-CAfile", str(root / "ca/ca.crt"),
+        str(root / "server/server.crt")
+    ], text=True, capture_output=True)
+    assert salida.returncode == 0, salida.stderr

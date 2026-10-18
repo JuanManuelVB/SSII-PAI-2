@@ -1,8 +1,7 @@
 """Interfaz de consola interactiva BYODSEC.
 
-Ejecutar desde PAI2-STX:  py -m src.client.interfaz
-Requiere 'rich':             py -m pip install -r requirements-interfaz.txt
-No sustituye a los servidores: iniciar gateway mTLS en otra terminal.
+Ejecutar desde PAI2-STX:  python -m src.client.interfaz
+(o bien: bash laboratorio.sh menu, que arranca antes los servidores).
 """
 from __future__ import annotations
 
@@ -19,7 +18,7 @@ try:
     from rich.table import Table
     from rich import box
 except ImportError as exc:
-    raise SystemExit("Falta 'rich'. Instala: py -m pip install -r requirements-interfaz.txt") from exc
+    raise SystemExit("Falta 'rich'. Instala: python -m pip install -r requirements.txt") from exc
 
 from src.client.servicio_consola import (
     CA_DEFECTO,
@@ -278,7 +277,7 @@ def demo_completa(cliente: ClienteConsola) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="BYODSEC: consola interactiva RF1 RF2 RF4 RF5")
-    parser.add_argument("--url", default="https://localhost:8443", help="Gateway con mTLS")
+    parser.add_argument("--url", default="https://localhost:9443", help="Gateway con mTLS")
     parser.add_argument("--registro-url", default="https://localhost:8444", help="Alta RF1 con TLS")
     parser.add_argument("--ca", type=Path, default=CA_DEFECTO, help="CA pública confiable")
     args = parser.parse_args()

@@ -26,7 +26,7 @@ segunda capa.
 
 ## Preparar la PKI de laboratorio
 
-Desde `PAI2-STX`:
+`bash laboratorio.sh instalar` lo hace automáticamente. A mano, desde `PAI2-STX`:
 
 ```powershell
 python -m pki.scripts.pki crear-ca

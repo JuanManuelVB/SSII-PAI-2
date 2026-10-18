@@ -110,7 +110,7 @@ def exigir_correcta(respuesta: httpx.Response, esperado: int = 200) -> None:
 
 
 class ClienteConsola:
-    def __init__(self, *, url: str = "https://localhost:8443", ca: Path = CA_DEFECTO,
+    def __init__(self, *, url: str = "https://localhost:9443", ca: Path = CA_DEFECTO,
                  fabrica: Callable[..., httpx.Client] = httpx.Client):
         if not url.startswith("https://"):
             raise ValueError("La dirección del gateway debe usar HTTPS")
@@ -311,9 +311,16 @@ def registrar_dispositivo(
     # Escritura exclusiva: evita sobrescribir claves existentes por accidente.
     with os.fdopen(os.open(ruta_key, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb") as f:
         f.write(privada)
+    certificado_pem = contenido["certificate"].encode("ascii")
     try:
         with ruta_crt.open("xb") as f:
-            f.write(contenido["certificate"].encode("ascii"))
+            f.write(certificado_pem)
+    except FileExistsError:
+        # En el laboratorio cliente y servidor comparten pki/clients/: el
+        # servidor RF1 ya guardó ESTE mismo certificado público. Solo se acepta
+        # si es idéntico byte a byte; nunca se sobrescribe otro distinto.
+        if ruta_crt.read_bytes() != certificado_pem:
+            raise ErrorConsola(f"Ya existe otro certificado en {ruta_crt}; conserva {ruta_key}") from None
     except OSError:
         # La cuenta en el servidor YA puede haber quedado registrada.
         raise ErrorConsola(f"Certificado emitido, pero no se pudo guardar {ruta_crt}; conserva {ruta_key}") from None

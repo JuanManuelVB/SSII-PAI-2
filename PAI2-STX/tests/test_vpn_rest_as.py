@@ -142,3 +142,21 @@ def test_logout_rest_fallo_vpn_no_revoca_web(monkeypatch):
     monkeypatch.setattr(mod, 'bloquear_concesiones_usuario', lambda *args,**kwargs: None)
     r=TestClient(app).post('/api/v1/sessions/logout')
     assert r.status_code == 503
+
+
+def test_gateway_unico_activa_rutas_vpn_solo_en_modo_rest(monkeypatch):
+    """src.gateway.app es el único gateway: el modo VPN REST añade /vpn/* y /abort."""
+    from src.gateway.app import crear_app
+
+    def rutas(app):
+        return set(app.openapi()['paths'])
+
+    basico = rutas(crear_app(vpn_rest=False))
+    completo = rutas(crear_app(vpn_rest=True))
+    for comun in ('/api/v1/sessions/challenge', '/api/v1/sessions/login',
+                  '/api/v1/sessions/me', '/api/v1/sessions/logout'):
+        assert comun in basico and comun in completo
+    assert '/api/v1/vpn/authorize' not in basico
+    assert {'/api/v1/vpn/authorize', '/api/v1/vpn/me', '/api/v1/sessions/abort'} <= completo
+    monkeypatch.setenv('BYODSEC_VPN_REST', '1')
+    assert '/api/v1/vpn/me' in rutas(crear_app())

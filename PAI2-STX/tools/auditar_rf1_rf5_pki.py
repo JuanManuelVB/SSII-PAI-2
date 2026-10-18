@@ -12,12 +12,14 @@ from pathlib import Path
 
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 from src.common.base_datos import RUTA_BASE_DATOS_POR_DEFECTO, conectar_base_datos
 from src.rf5.gestion import RUTA_CA_CERT, DIRECTORIO_PRIVADO
+
+RAIZ = Path(__file__).resolve().parents[1]
 
 
 def verificar_firma(cert: x509.Certificate, ca: x509.Certificate) -> None:
@@ -32,7 +34,14 @@ def verificar_firma(cert: x509.Certificate, ca: x509.Certificate) -> None:
         raise ValueError('tipo de CA no admitido')
 
 
-def comprobar(ruta_db: Path, ruta_ca: Path, directorio: Path, total: int) -> dict:
+def comprobar(ruta_db: Path, ruta_ca: Path, directorio: Path, total: int,
+              raiz: Path = RAIZ) -> dict:
+    """Verifica cada emparejamiento activo contra SU certificado.
+
+    Un usuario RF5 puede tener además dispositivos dados de alta por RF1: cada
+    emparejamiento se comprueba con el fichero de ``certificate_path`` y se
+    exige que los ``total`` usuarios tengan al menos un certificado válido.
+    """
     problemas: list[str] = []
     if not ruta_db.is_file() or not ruta_ca.is_file():
         return {'aprobado': False, 'problemas': ['Falta SQLite o certificado público CA']}
@@ -48,7 +57,7 @@ def comprobar(ruta_db: Path, ruta_ca: Path, directorio: Path, total: int) -> dic
     with conectar_base_datos(ruta_db) as db:
         usuarios = db.execute("SELECT username,role,status FROM users WHERE origin='RF5'").fetchall()
         parejas = db.execute("""SELECT p.username,p.device_id,p.status,p.certificate_serial,
-                               p.public_key_fingerprint FROM device_pairings p
+                               p.public_key_fingerprint,p.certificate_path FROM device_pairings p
                                JOIN users u ON u.username=p.username WHERE u.origin='RF5'""").fetchall()
     roles = dict(Counter(u['role'] for u in usuarios))
     if set(roles) != {'PDI', 'PAS', 'INVESTIGADOR'}:
@@ -66,15 +75,16 @@ def comprobar(ruta_db: Path, ruta_ca: Path, directorio: Path, total: int) -> dic
         problemas.append(f'Usuarios RF5: {len(usuarios)}/{total}')
     if any(u['status'] != 'active' for u in usuarios):
         problemas.append('Hay cuentas RF5 no activas (revisar si es intencional)')
-    emitidos = 0
+    usuarios_verificados: set[str] = set()
     errores_cert: list[str] = []
     for registro in parejas:
         nombre = registro['username']
         if registro['status'] != 'active':
             continue
-        ruta = directorio / f'{nombre}.crt'
+        ruta = (raiz / registro['certificate_path'] if registro['certificate_path']
+                else directorio / f'{nombre}.crt')
         if not ruta.is_file():
-            errores_cert.append(f'{nombre}: falta .crt')
+            errores_cert.append(f"{nombre}/{registro['device_id']}: falta .crt")
             continue
         try:
             cert = x509.load_pem_x509_certificate(ruta.read_bytes())
@@ -99,16 +109,16 @@ def comprobar(ruta_db: Path, ruta_ca: Path, directorio: Path, total: int) -> dic
                 str(cert.serial_number) != registro['certificate_serial'] or
                 huella != registro['public_key_fingerprint']):
                 raise ValueError('certificado no coincide con emparejamiento inmutable')
-            emitidos += 1
+            usuarios_verificados.add(nombre)
         except (ValueError, IndexError, InvalidSignature, x509.ExtensionNotFound) as exc:
-            errores_cert.append(f'{nombre}: {exc}')
+            errores_cert.append(f"{nombre}/{registro['device_id']}: {exc}")
     if errores_cert:
         problemas.append(f'{len(errores_cert)} certificados emitidos no verificables')
-    # El enunciado exige certificados para las cuentas precargadas.
-    if emitidos != total:
-        problemas.append(f'Certificados activos verificables: {emitidos}/{total}')
+    # El enunciado exige certificado para cada una de las cuentas precargadas.
+    if len(usuarios_verificados) != total:
+        problemas.append(f'Usuarios RF5 con certificado verificable: {len(usuarios_verificados)}/{total}')
     return {'aprobado': not problemas, 'total_usuarios_rf5':len(usuarios),
-            'por_rol':roles, 'certificados_verificados':emitidos,
+            'por_rol':roles, 'usuarios_con_certificado_verificado':len(usuarios_verificados),
             'emparejamientos':len(parejas), 'problemas':problemas,
             'detalle_certificados':errores_cert[:20]}
 

@@ -141,6 +141,38 @@ def test_rf1_alta_genera_clave_local_y_no_sobrescribe(tmp_path):
                              directorio=destino, fabrica=fabricar)
 
 
+def test_rf1_alta_acepta_el_certificado_que_ya_guardo_el_servidor(tmp_path):
+    """Regresión: en el laboratorio el servidor RF1 escribe el .crt en la misma carpeta."""
+    ca, _, _ = _material(tmp_path)
+    destino = tmp_path / "compartida"
+    destino.mkdir()
+    now = datetime.now(timezone.utc)
+    emitidos = []
+
+    def responder(req):
+        datos = __import__("json").loads(req.content)
+        key = serialization.load_pem_public_key(datos["public_key"].encode("ascii"))
+        ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        sujeto = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "disp-lab"),
+                            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "alumno")])
+        pem = (x509.CertificateBuilder().subject_name(sujeto).issuer_name(sujeto)
+               .public_key(key).serial_number(x509.random_serial_number())
+               .not_valid_before(now - timedelta(hours=1)).not_valid_after(now + timedelta(days=5))
+               .sign(ca_key, hashes.SHA256())).public_bytes(serialization.Encoding.PEM)
+        (destino / "disp-lab.crt").write_bytes(pem)  # lo que hace el servidor RF1
+        emitidos.append(pem)
+        return httpx.Response(201, json={"certificate": pem.decode("ascii")})
+
+    def fabricar(**kwargs):
+        return httpx.Client(transport=httpx.MockTransport(responder), base_url=kwargs["base_url"])
+
+    identidad = registrar_dispositivo(usuario="alumno", password="clave-larga-segura",
+                                      device_id="disp-lab", ca=ca, directorio=destino,
+                                      fabrica=fabricar)
+    assert identidad.certificado.read_bytes() == emitidos[0]
+    assert identidad.clave.is_file()
+
+
 def test_no_acepta_http_en_gateway_y_registro(tmp_path):
     ca, _, _ = _material(tmp_path)
     with pytest.raises(ValueError, match="HTTPS"):

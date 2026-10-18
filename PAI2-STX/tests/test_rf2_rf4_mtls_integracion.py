@@ -14,11 +14,11 @@ import pytest
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from pki.scripts import pki
-from src.gateway.app import app
 from src.gateway.protocolo_mtls import MTLSH11Protocol
 from src.rf2.autenticacion import mensaje_a_firmar
 from src.server.tls import crear_contexto_tls_servidor
-from test_rf2_rf4 import escenario
+# Misma app que configura el fixture ``escenario`` (RF2/RF4 sin Access Server).
+from test_rf2_rf4 import app, escenario  # noqa: F401  (fixture de pytest)
 
 
 def test_login_logout_reales_por_tls13_mtls(escenario, tmp_path):

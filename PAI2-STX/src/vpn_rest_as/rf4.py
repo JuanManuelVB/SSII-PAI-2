@@ -1,7 +1,7 @@
-"""Endpoint opcional RF4 que pide la desconexión mediante REST nativa.
+"""RF4 con VPN: logout que bloquea (deny), desconecta y verifica por REST.
 
-Importante: su función es efectuar la desconexión REST. No evita por sí
-sola nuevas conexiones VPN: requerirá la política de acceso sincronizada.
+Orden de fallo seguro: 1) deny=true en Access Server, 2) desconexión y
+comprobación por GET, 3) revocación de TODAS las sesiones RF2 del usuario.
 """
 from __future__ import annotations
 
@@ -56,23 +56,12 @@ def logout_rest(
     # Independientemente de REST, invalidar todas las sesiones RF2 del usuario
     # para impedir reautorizaciones desde tokens antiguos.
     bloquear_concesiones_usuario(sesion['username'], _db(request))
-    if not error_vpn:
-        registrar_cierre(
-            sesion['username'], sesion['device_id'],
-            ruta=getattr(request.app.state, 'ruta_auditoria_rf4', RUTA_AUDITORIA),
-        )
-    else:
-        # No registrar "session_closed" si el túnel no está confirmado.
-        import json
-        from datetime import datetime, timezone
-        ruta = getattr(request.app.state, 'ruta_auditoria_rf4', RUTA_AUDITORIA)
-        ruta.parent.mkdir(parents=True, exist_ok=True)
-        with ruta.open('a', encoding='utf-8') as log:
-            log.write(json.dumps({
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'event': 'session_web_revoked_vpn_unconfirmed',
-                'username': sesion['username'], 'device_id': sesion['device_id'],
-            }, ensure_ascii=False) + '\n')
+    # No registrar "session_closed" si el túnel no está confirmado.
+    registrar_cierre(
+        sesion['username'], sesion['device_id'],
+        ruta=getattr(request.app.state, 'ruta_auditoria_rf4', RUTA_AUDITORIA),
+        evento='session_closed' if not error_vpn else 'session_web_revoked_vpn_unconfirmed',
+    )
     response.headers['Cache-Control'] = 'no-store'
     response.headers['Connection'] = 'close'
     if error_vpn:

@@ -6,11 +6,10 @@ usuarios de laboratorio y denegar logins que no pasen por RF2.
 """
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from src.common.base_datos import RUTA_BASE_DATOS_POR_DEFECTO, conectar_base_datos
-from src.rf2.sesiones import _hash_token, validar_sesion
+from src.rf2.sesiones import _hash_token
 
 
 def inicializar(ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> None:
@@ -20,18 +19,6 @@ def inicializar(ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> None:
             device_id TEXT NOT NULL, granted_at TEXT NOT NULL,
             disabled_at TEXT
         )''')
-
-
-def autorizacion_vigente(token: str, ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> bool:
-    if validar_sesion(token, ruta) is None:
-        return False
-    inicializar(ruta)
-    with conectar_base_datos(ruta) as conn:
-        row = conn.execute(
-            "SELECT 1 FROM vpn_grants WHERE token_hash=? AND disabled_at IS NULL",
-            (_hash_token(token),)
-        ).fetchone()
-    return row is not None
 
 
 def guardar_concesion(token: str, username: str, device_id: str,

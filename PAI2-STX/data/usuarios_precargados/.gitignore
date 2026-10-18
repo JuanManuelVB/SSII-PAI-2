@@ -1,3 +1,0 @@
-# Tras migrar, este JSON es solo una copia histórica y no debe subirse a Git.
-# IMPORTANTE: si ya está versionado, ejecutar git rm --cached (ver guía).
-usuarios.json

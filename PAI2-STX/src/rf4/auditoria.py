@@ -10,11 +10,12 @@ RAIZ = Path(__file__).resolve().parents[2]
 RUTA_AUDITORIA = RAIZ / "evidencias" / "logs" / "rf4-audit.jsonl"
 
 
-def registrar_cierre(username: str, device_id: str, *, ruta: Path = RUTA_AUDITORIA) -> None:
+def registrar_cierre(username: str, device_id: str, *, ruta: Path = RUTA_AUDITORIA,
+                     evento: str = "session_closed") -> None:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     registro = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "event": "session_closed",
+        "event": evento,
         "username": username,
         "device_id": device_id,
     }

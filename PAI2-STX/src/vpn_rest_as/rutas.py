@@ -4,12 +4,13 @@ No expone el token de administración de Access Server a clientes.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from src.rf2.rutas import _db, obtener_token
-from src.vpn_rest_as.autorizaciones import guardar_concesion, autorizacion_vigente, hay_concesion_de_otro_dispositivo
+import os
 
-from src.rf2.rutas import sesion_autenticada
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from src.rf2.rutas import _db, obtener_token, sesion_autenticada
 from src.rf2.sesiones import revocar_token
+from src.vpn_rest_as.autorizaciones import guardar_concesion, hay_concesion_de_otro_dispositivo
 from src.vpn_rest_as.client import AccessServerClient, AccessServerError, ConfigAccessServer
 
 router = APIRouter(prefix='/api/v1/vpn', tags=['VPN REST'])
@@ -53,7 +54,6 @@ def autorizar_vpn(
     Condición de despliegue: todos los usuarios de Access Server deben
     empezar bloqueados (`deny=true`) y autologin deshabilitado.
     """
-    import os
     if os.environ.get('BYODSEC_VPN_DEFAULT_DENY') != 'confirmed':
         raise HTTPException(503, 'No se ha verificado la política de acceso predeterminado bloqueado')
     if hay_concesion_de_otro_dispositivo(sesion['username'], sesion['device_id'], _db(request)):

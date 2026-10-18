@@ -19,6 +19,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 from src.common.base_datos import (
+    RUTA_BASE_DATOS_POR_DEFECTO,
     ahora,
     conectar_base_datos,
     inicializar_base_datos,
@@ -26,12 +27,13 @@ from src.common.base_datos import (
 from src.common.seguridad import verificar_contrasena
 
 RAIZ = Path(__file__).resolve().parents[2]
-DIRECTORIO_DATOS = RAIZ / "data"
 DIRECTORIO_PKI = RAIZ / "pki"
 RUTA_AUDITORIA = RAIZ / "evidencias" / "logs" / "rf1-audit.jsonl"
 RUTA_CERTIFICADO_CA = DIRECTORIO_PKI / "ca" / "ca.crt"
 RUTA_CLAVE_CA = DIRECTORIO_PKI / "ca" / "ca.key"
 DIRECTORIO_CERTIFICADOS_CLIENTE = DIRECTORIO_PKI / "clients"
+# Se resuelve en cada llamada para que las pruebas usen una SQLite temporal.
+RUTA_BASE_DATOS = RUTA_BASE_DATOS_POR_DEFECTO
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 registrador = logging.getLogger(__name__)
@@ -93,16 +95,20 @@ def _ahora() -> str:
     return ahora()
 
 
-# Estos alias conservan la compatibilidad con los tests y módulos existentes
-# mientras RF1 pasa a utilizar las implementaciones centralizadas.
-_conectar = conectar_base_datos
-_inicializar_base_datos = inicializar_base_datos
+def _conectar():
+    return conectar_base_datos(RUTA_BASE_DATOS)
+
+
+def _inicializar_base_datos() -> None:
+    inicializar_base_datos(RUTA_BASE_DATOS)
+
+
 _verificar_contrasena = verificar_contrasena
 
 
 def _cargar_usuario(nombre_usuario: str) -> dict[str, str] | None:
-    """Busca una cuenta creada manualmente en la base de datos."""
-    with conectar_base_datos() as conexion:
+    """Busca la cuenta (manual o RF5) en la base de datos."""
+    with _conectar() as conexion:
         fila = conexion.execute(
             """
             SELECT username, password_hash, role, status

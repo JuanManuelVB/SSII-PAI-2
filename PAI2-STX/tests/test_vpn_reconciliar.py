@@ -1,5 +1,6 @@
+"""RF4: el reconciliador cierra por REST las VPN cuya sesión RF2 caducó."""
 from datetime import datetime,timezone,timedelta
-from src.common.base_datos import conectar_base_datos,inicializar_base_datos,ahora
+from src.common.base_datos import conectar_base_datos, ahora
 from src.rf2.sesiones import inicializar_sesiones,_hash_token
 from src.vpn_rest_as.autorizaciones import guardar_concesion
 from src.vpn_rest_as.reconciliar import usuarios_sin_sesion_valida,ejecutar
@@ -21,6 +22,8 @@ def test_caducidad_bloquea_y_desconecta(tmp_path):
     class Fake:
         def fijar_acceso(self,u,*,permitido): ops.append(('block',u,permitido))
         def desconectar_usuario(self,u): ops.append(('disconnect',u))
+        def esperar_desconexion(self,u): ops.append(('verify',u))
+        def conexiones_usuario(self,u): return []
     assert ejecutar(Fake(),path)==['demo']
-    assert ops==[('block','demo',False),('disconnect','demo')]
+    assert ops==[('block','demo',False),('disconnect','demo'),('verify','demo')]
     assert usuarios_sin_sesion_valida(path)==[]

@@ -1,33 +1,36 @@
+# Python
 __pycache__/
-.pytest_cache/
 *.py[cod]
-*.sqlite3
+.pytest_cache/
 .venv/
+.venv-wsl/
 
-# Never commit private PKI material or generated certificates.
+# Estado local del laboratorio (se regenera con laboratorio.sh)
+data/*.sqlite3
+data/*.sqlite3-*
+data/backups/
+
+# PKI: nunca versionar claves, certificados emitidos ni contraseñas
 pki/**/*.key
 pki/**/*.csr
 pki/**/*.crt
 pki/**/*.pem
+pki/**/*.p12
+pki/ca/revoked.json
+pki/clients/
 !pki/**/.gitkeep
 
-# Runtime audit output may contain sensitive data.
-evidencias/logs/*.jsonl
-
-# VPN / Access Server private materials
+# VPN / Access Server
 .env
 .env.*
-!*.example
 *.ovpn
-vpn/**/*.key
-vpn/**/*.pem
-vpn/**/*.crt
-vpn/**/*.p12
-pki/clients/rf5/credenciales.csv
-data/backups/
-*.tar
 
-.venv-wsl/
-*.ovpn
-*.sqlite3
-*.sqlite3-*
+# Evidencias generadas que pueden contener datos sensibles
+evidencias/logs/*.jsonl
+evidencias/pcap/*.pcap*
+
+# Paquetes y respaldos
+*.zip
+*.tgz
+*.tar
+_respaldo*

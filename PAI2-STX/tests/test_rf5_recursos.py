@@ -123,3 +123,55 @@ def test_emision_registra_propiedades_de_certificado_cliente(tmp_path):
         "pki/clients/rf5/rf5_inv_001.crt",
     )
     print("[RF5] clientAuth, dispositivo, usuario y ruta persistida verificados")
+
+
+def test_auditoria_acepta_dispositivo_rf1_adicional_de_usuario_rf5(tmp_path):
+    """RS1/RF1: un usuario RF5 con un segundo dispositivo (alta RF1) sigue siendo válido.
+
+    Regresión: la auditoría leía siempre <usuario>.crt para cada emparejamiento.
+    """
+    import hashlib
+
+    from cryptography.x509.oid import NameOID
+
+    from src.common.base_datos import ahora
+    from tools.auditar_rf1_rf5_pki import comprobar
+
+    rutas = _rutas(tmp_path)
+    ruta_ca, ruta_key = _crear_ca(tmp_path)
+    directorio = tmp_path / "pki" / "clients" / "rf5"
+    gestion.precargar_usuarios(3, **rutas)
+    gestion.emitir_certificados(ruta_base_datos=rutas["ruta_base_datos"], directorio_destino=directorio,
+                                ruta_ca_cert=ruta_ca, ruta_ca_key=ruta_key)
+    assert comprobar(rutas["ruta_base_datos"], ruta_ca, directorio, 3, raiz=tmp_path)["aprobado"]
+
+    # Segundo dispositivo del mismo usuario, emitido como lo hace RF1.
+    ca = x509.load_pem_x509_certificate(ruta_ca.read_bytes())
+    clave_ca = serialization.load_pem_private_key(ruta_key.read_bytes(), None)
+    clave = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    momento = datetime.now(timezone.utc)
+    certificado = (
+        x509.CertificateBuilder()
+        .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "extra-dev02"),
+                                 x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "rf5_inv_001")]))
+        .issuer_name(ca.subject).public_key(clave.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(momento - timedelta(minutes=1)).not_valid_after(momento + timedelta(days=5))
+        .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+        .add_extension(x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]), critical=True)
+        .sign(clave_ca, hashes.SHA256())
+    )
+    (tmp_path / "pki" / "clients" / "extra-dev02.crt").write_bytes(
+        certificado.public_bytes(serialization.Encoding.PEM))
+    huella = hashlib.sha256(clave.public_key().public_bytes(
+        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)).hexdigest()
+    with conectar_base_datos(rutas["ruta_base_datos"]) as conexion:
+        conexion.execute(
+            "INSERT INTO device_pairings (device_id, username, public_key_fingerprint, certificate_serial,"
+            " certificate_path, created_at, status) VALUES (?, ?, ?, ?, ?, ?, 'active')",
+            ("extra-dev02", "rf5_inv_001", huella, str(certificado.serial_number),
+             "pki/clients/extra-dev02.crt", ahora()))
+
+    resultado = comprobar(rutas["ruta_base_datos"], ruta_ca, directorio, 3, raiz=tmp_path)
+    assert resultado["aprobado"], resultado["problemas"]
+    assert resultado["usuarios_con_certificado_verificado"] == 3

@@ -197,11 +197,12 @@ class AccessServerClient:
                     response.raise_for_status()
                 except httpx.HTTPStatusError as exc:
                     raise AccessServerError(f'Error HTTP {exc.response.status_code} generando perfil') from exc
-                # La API 3.2+ devuelve HTTP 201 y bytes de perfil .ovpn.
+                # La API 3.2+ devuelve los bytes del perfil .ovpn (HTTP 200/201).
+                # Nunca se acepta un JSON de error como si fuese un perfil.
                 data = response.content
-                if response.status_code != 201 or not data or len(data) > 1024 * 1024:
+                if response.status_code not in (200, 201) or not data or len(data) > 1024 * 1024:
                     raise AccessServerError('Respuesta de perfil inválida')
-                if b'client' not in data[:1024] or b'<cert>' not in data:
+                if b'client' not in data[:1024] or (b'<ca>' not in data and b'<cert>' not in data):
                     raise AccessServerError('Respuesta sin estructura de perfil OpenVPN')
                 return data
         except httpx.RequestError as exc:
