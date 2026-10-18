@@ -8,8 +8,9 @@ import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from src.rf2.rutas import _db, obtener_token, sesion_autenticada
+from src.rf2.rutas import _db, _ruta_auditoria, obtener_token, sesion_autenticada
 from src.rf2.sesiones import revocar_token
+from src.common.auditoria import registrar_evento
 from src.vpn_rest_as.autorizaciones import guardar_concesion, hay_concesion_de_otro_dispositivo
 from src.vpn_rest_as.client import AccessServerClient, AccessServerError, ConfigAccessServer
 
@@ -58,6 +59,9 @@ def autorizar_vpn(
         raise HTTPException(503, 'No se ha verificado la política de acceso predeterminado bloqueado')
     if hay_concesion_de_otro_dispositivo(sesion['username'], sesion['device_id'], _db(request)):
         revocar_token(token, _db(request))
+        registrar_evento('vpn_authorize_denied', outcome='failure', username=sesion['username'],
+                         device_id=sesion['device_id'], reason='otra_sesion_de_dispositivo_activa',
+                         source='VPN', ruta=_ruta_auditoria(request))
         raise HTTPException(409, 'La cuenta VPN tiene otra sesión de dispositivo activa')
     try:
         servicio.fijar_acceso(sesion['username'], permitido=True)
@@ -72,5 +76,10 @@ def autorizar_vpn(
         except AccessServerError:
             # El reconciliador debe volver a intentarlo; no anunciar éxito.
             pass
+        registrar_evento('vpn_authorize_denied', outcome='failure', username=sesion['username'],
+                         device_id=sesion['device_id'], reason='proveedor_vpn_no_confirmado',
+                         source='VPN', ruta=_ruta_auditoria(request))
         raise HTTPException(503, 'La autorización VPN no está confirmada; token RF2 revocado') from exc
+    registrar_evento('vpn_authorized', outcome='success', username=sesion['username'],
+                     device_id=sesion['device_id'], source='VPN', ruta=_ruta_auditoria(request))
     return {'status': 'authorized', 'username': sesion['username'], 'device_id': sesion['device_id']}

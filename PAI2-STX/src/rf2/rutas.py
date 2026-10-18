@@ -13,10 +13,15 @@ from pydantic import BaseModel, Field
 
 from src.common.base_datos import RUTA_BASE_DATOS_POR_DEFECTO
 from src.common.config_tls import RUTA_CERTIFICADO_CA
+from src.common.auditoria import RUTA_AUDITORIA_ACCESOS, registrar_evento
 from src.rf2.autenticacion import AutenticacionRechazada, autenticar
 from src.rf2.sesiones import crear_desafio, crear_sesion, validar_sesion
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["RF2"])
+
+
+def _ruta_auditoria(request: Request) -> Path:
+    return getattr(request.app.state, "ruta_auditoria_accesos", RUTA_AUDITORIA_ACCESOS)
 
 
 class SolicitudDesafio(BaseModel):
@@ -82,13 +87,19 @@ def login(solicitud: SolicitudLogin, request: Request) -> dict[str, str]:
     ruta_revocados = getattr(request.app.state, "ruta_revocados", ruta_ca.parent / "revoked.json")
     # Se exige que el certificado enviado coincida exactamente con el que
     # OpenSSL ha validado en la negociación mTLS.
+    def _rechazar(mensaje: str, motivo: str):
+        registrar_evento("login_failed", outcome="failure", username=solicitud.username,
+                         device_id=solicitud.device_id, reason=motivo, source="RF2",
+                         ruta=_ruta_auditoria(request))
+        return HTTPException(401, mensaje)
+
     try:
         certificado_tls = x509.load_der_x509_certificate(request.scope["mtls_client_cert_der"])
         certificado_enviado = x509.load_pem_x509_certificate(solicitud.certificate.encode("ascii"))
         if certificado_tls.fingerprint(hashes.SHA256()) != certificado_enviado.fingerprint(hashes.SHA256()):
-            raise HTTPException(401, "certificado de dispositivo no autorizado")
+            raise _rechazar("certificado de dispositivo no autorizado", "certificado_mtls_no_coincide")
     except (ValueError, UnicodeError):
-        raise HTTPException(401, "certificado de dispositivo no autorizado") from None
+        raise _rechazar("certificado de dispositivo no autorizado", "certificado_ilegible") from None
     try:
         serial = autenticar(
             username=solicitud.username, password=solicitud.password, device_id=solicitud.device_id,
@@ -96,8 +107,10 @@ def login(solicitud: SolicitudLogin, request: Request) -> dict[str, str]:
             ruta_base_datos=_db(request), ruta_ca=ruta_ca, ruta_revocados=ruta_revocados,
         )
     except AutenticacionRechazada:
-        raise HTTPException(401, "credenciales o dispositivo no autorizados") from None
+        raise _rechazar("credenciales o dispositivo no autorizados", "credenciales_o_dispositivo") from None
     token, expiracion = crear_sesion(solicitud.username, solicitud.device_id, serial, _db(request))
+    registrar_evento("login_succeeded", outcome="success", username=solicitud.username,
+                     device_id=solicitud.device_id, source="RF2", ruta=_ruta_auditoria(request))
     return {"access_token": token, "token_type": "bearer", "expires_at": expiracion}
 
 

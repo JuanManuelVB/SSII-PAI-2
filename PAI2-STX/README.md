@@ -48,6 +48,10 @@ La relación completa requisito → código → prueba → evidencia está en
 [`docs/trazabilidad.md`](docs/trazabilidad.md), junto con las pruebas
 manuales que necesitan el túnel conectado con OpenVPN Connect.
 
+Documentación adicional:
+- [`docs/scripts.md`](docs/scripts.md): qué hace cada script y herramienta, dónde se ejecuta y qué produce.
+- [`docs/procedimientos_6_10.md`](docs/procedimientos_6_10.md): procedimientos paso a paso de RS2 (TLS 1.3), RS3 (300 conexiones y rendimiento), RS4 (Wireshark y auditoría) y el extra de ataques.
+
 ## Estructura
 
 ```text

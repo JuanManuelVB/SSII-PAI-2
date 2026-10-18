@@ -95,9 +95,12 @@ EOF
   chmod 644 "$LAB/access-server-ca.crt"
   ok 'HTTPS de Access Server con certificado verificable para localhost'
 
-  log 'Paso 3/5 · RS2: TLS 1.3 mínimo en VPN y web, API REST y autenticación local'
+  log 'Paso 3/5 · RS2: TLS 1.3 mínimo en VPN y web, cifrado AEAD, API REST y autenticación local'
   sudo "$SACLI" --key vpn.server.tls_version_min --value 1.3 ConfigPut >/dev/null
   sudo "$SACLI" --key cs.tls_version_min --value 1.3 ConfigPut >/dev/null
+  # RS2: canal de datos solo con cifrado autenticado (AEAD). En TLS 1.3 el canal
+  # de control ya es AEAD+PFS; esto fija además el cifrado del canal de datos.
+  sudo "$SACLI" --key vpn.server.data_ciphers --value 'AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305' ConfigPut >/dev/null
   sudo "$SACLI" --key openapi.web_access --value 1 ConfigPut >/dev/null
   sudo "$SACLI" --key auth.module.type --value local ConfigPut >/dev/null
 

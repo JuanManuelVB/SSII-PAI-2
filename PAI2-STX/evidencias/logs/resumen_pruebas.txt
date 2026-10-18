@@ -1,0 +1,11 @@
+BYODSEC · Resumen de pruebas · 2026-10-18T22:51:16Z
+Modo: completo con Access Server
+
+  [PASS] Pruebas automáticas (pytest)                      evidencias/logs/pytest.txt
+  [PASS] Auditoría RF1/RF5/RS1: 300 usuarios y certificados evidencias/logs/auditoria_rf1_rf5_pki.json
+  [PASS] Ataques TLS controlados (+10 %)                    evidencias/ataques/tls_opcional.json
+  [PASS] RS2: solo TLS 1.3 en los servicios en marcha       evidencias/logs/tls_servicios.json
+  [PASS] E2E real RF1 -> RF2 -> VPN -> RF4                  evidencias/logs/e2e_laboratorio.json
+  [PASS] API REST de Access Server                          -
+
+Pruebas manuales con el túnel real (no automatizables): ver README, sección "Pruebas manuales".

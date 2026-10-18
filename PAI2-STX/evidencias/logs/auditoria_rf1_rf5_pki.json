@@ -1,0 +1,13 @@
+{
+  "aprobado": true,
+  "total_usuarios_rf5": 300,
+  "por_rol": {
+    "PDI": 100,
+    "PAS": 100,
+    "INVESTIGADOR": 100
+  },
+  "usuarios_con_certificado_verificado": 300,
+  "emparejamientos": 300,
+  "problemas": [],
+  "detalle_certificados": []
+}

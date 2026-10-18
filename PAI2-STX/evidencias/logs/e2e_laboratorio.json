@@ -1,0 +1,93 @@
+{
+  "fecha_utc": "2026-10-18T22:51:15.309774+00:00",
+  "gateway": "https://localhost:9443",
+  "registro_rf1": "https://localhost:8444",
+  "modo_vpn_rest": true,
+  "pasos": [
+    {
+      "requisito": "RF1",
+      "paso": "alta de un dispositivo nuevo",
+      "esperado": "HTTP 201",
+      "obtenido": "HTTP 201, certificado emitido para una clave generada en el cliente",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF1",
+      "paso": "rechazo de device_id ya emparejado",
+      "esperado": "HTTP 409",
+      "obtenido": "HTTP 409",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF1",
+      "paso": "rechazo de credenciales incorrectas",
+      "esperado": "HTTP 401",
+      "obtenido": "HTTP 401",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF2",
+      "paso": "login mTLS + contraseña + desafío firmado (RF5)",
+      "esperado": "HTTP 200",
+      "obtenido": "HTTP 200 + VPN autorizada por REST",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF2",
+      "paso": "consulta de sesión /me",
+      "esperado": "HTTP 200",
+      "obtenido": "HTTP 200, rol INVESTIGADOR",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "VPN",
+      "paso": "estado VPN propio por REST",
+      "esperado": "HTTP 200",
+      "obtenido": "HTTP 200, túneles activos del usuario: 0",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "VPN",
+      "paso": "segundo dispositivo con la cuenta en uso",
+      "esperado": "HTTP 409",
+      "obtenido": "HTTP 409, la cuenta VPN ya está en uso por otro dispositivo",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF4",
+      "paso": "logout + reutilización del token",
+      "esperado": "HTTP 200 / 401",
+      "obtenido": "HTTP 200 y token anterior rechazado con HTTP 401 (VPN bloqueada y desconexión verificada por REST)",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF2",
+      "paso": "login con el dispositivo emparejado por RF1",
+      "esperado": "HTTP 200",
+      "obtenido": "HTTP 200",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF4",
+      "paso": "logout del dispositivo RF1",
+      "esperado": "HTTP 200 / 401",
+      "obtenido": "HTTP 200 y token anterior rechazado con HTTP 401 (VPN bloqueada y desconexión verificada por REST)",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RF2",
+      "paso": "rechazo de contraseña incorrecta",
+      "esperado": "HTTP 401",
+      "obtenido": "HTTP 401",
+      "resultado": "PASS"
+    },
+    {
+      "requisito": "RS1",
+      "paso": "rechazo de cliente sin certificado mTLS",
+      "esperado": "rechazo",
+      "obtenido": "conexión TLS rechazada (ReadError)",
+      "resultado": "PASS"
+    }
+  ],
+  "aprobado": true
+}

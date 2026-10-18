@@ -1,0 +1,449 @@
+
+[INICIO] tests/test_ataque_opcional.py::test_ataque_controlado_local
+[RESULTADO] tests/test_ataque_opcional.py::test_ataque_controlado_local: PASSED
+.
+[INICIO] tests/test_common.py::test_hash_de_contrasena_se_verifica_sin_guardar_la_original
+[RESULTADO] tests/test_common.py::test_hash_de_contrasena_se_verifica_sin_guardar_la_original: PASSED
+.
+[INICIO] tests/test_common.py::test_base_de_datos_crea_el_esquema_comun
+[RESULTADO] tests/test_common.py::test_base_de_datos_crea_el_esquema_comun: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_descubrir_identidades_sin_abrir_claves
+[RESULTADO] tests/test_interfaz_consola.py::test_descubrir_identidades_sin_abrir_claves: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_login_logout_consulta_y_401_con_token_anterior
+[RESULTADO] tests/test_interfaz_consola.py::test_login_logout_consulta_y_401_con_token_anterior: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_login_rechazado_no_guarda_token
+[RESULTADO] tests/test_interfaz_consola.py::test_login_rechazado_no_guarda_token: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_rf1_alta_genera_clave_local_y_no_sobrescribe
+[RESULTADO] tests/test_interfaz_consola.py::test_rf1_alta_genera_clave_local_y_no_sobrescribe: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_rf1_alta_acepta_el_certificado_que_ya_guardo_el_servidor
+[RESULTADO] tests/test_interfaz_consola.py::test_rf1_alta_acepta_el_certificado_que_ya_guardo_el_servidor: PASSED
+.
+[INICIO] tests/test_interfaz_consola.py::test_no_acepta_http_en_gateway_y_registro
+[RESULTADO] tests/test_interfaz_consola.py::test_no_acepta_http_en_gateway_y_registro: PASSED
+.
+[INICIO] tests/test_mtls.py::test_negociacion_mtls_13_acepta_cliente_firmado_por_la_ca
+[RESULTADO] tests/test_mtls.py::test_negociacion_mtls_13_acepta_cliente_firmado_por_la_ca: PASSED
+.
+[INICIO] tests/test_mtls.py::test_mtls_rechaza_cliente_sin_certificado
+[RESULTADO] tests/test_mtls.py::test_mtls_rechaza_cliente_sin_certificado: PASSED
+.
+[INICIO] tests/test_mtls.py::test_mtls_rechaza_cliente_tls_12
+[RESULTADO] tests/test_mtls.py::test_mtls_rechaza_cliente_tls_12: PASSED
+.
+[INICIO] tests/test_pki.py::test_pki_emite_servidor_cliente_y_revoca
+[RESULTADO] tests/test_pki.py::test_pki_emite_servidor_cliente_y_revoca: PASSED
+.
+[INICIO] tests/test_pki.py::test_cli_pki_funciona
+[RESULTADO] tests/test_pki.py::test_cli_pki_funciona: PASSED
+.
+[INICIO] tests/test_pki.py::test_certificados_nuevos_tienen_aki_ski_y_validacion_estricta
+[RESULTADO] tests/test_pki.py::test_certificados_nuevos_tienen_aki_ski_y_validacion_estricta: PASSED
+.
+[INICIO] tests/test_rf1_registration.py::test_health_endpoint
+[RESULTADO] tests/test_rf1_registration.py::test_health_endpoint: PASSED
+.
+[INICIO] tests/test_rf1_registration.py::test_registro_rechaza_credenciales_invalidas
+[RESULTADO] tests/test_rf1_registration.py::test_registro_rechaza_credenciales_invalidas: PASSED
+.
+[INICIO] tests/test_rf1_registration.py::test_registro_emite_certificado_y_persiste_emparejamiento
+[RESULTADO] tests/test_rf1_registration.py::test_registro_emite_certificado_y_persiste_emparejamiento: PASSED
+.
+[INICIO] tests/test_rf1_registration.py::test_registro_rechaza_reutilizar_dispositivo_o_clave
+[RESULTADO] tests/test_rf1_registration.py::test_registro_rechaza_reutilizar_dispositivo_o_clave: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_login_me_logout_rechaza_reutilizacion_y_audita
+[RESULTADO] tests/test_rf2_rf4.py::test_login_me_logout_rechaza_reutilizacion_y_audita: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_login_rechaza_contrasena_incorrecta
+[RESULTADO] tests/test_rf2_rf4.py::test_login_rechaza_contrasena_incorrecta: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_login_rechaza_firma_invalida
+[RESULTADO] tests/test_rf2_rf4.py::test_login_rechaza_firma_invalida: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_login_rechaza_certificado_ajeno_al_dispositivo
+[RESULTADO] tests/test_rf2_rf4.py::test_login_rechaza_certificado_ajeno_al_dispositivo: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_login_rechaza_reutilizar_desafio
+[RESULTADO] tests/test_rf2_rf4.py::test_login_rechaza_reutilizar_desafio: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_bloqueo_usuario_invalida_sesion
+[RESULTADO] tests/test_rf2_rf4.py::test_bloqueo_usuario_invalida_sesion: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_revocacion_dispositivo_invalida_sesion
+[RESULTADO] tests/test_rf2_rf4.py::test_revocacion_dispositivo_invalida_sesion: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_sesion_caducada_no_funciona
+[RESULTADO] tests/test_rf2_rf4.py::test_sesion_caducada_no_funciona: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_no_se_aceptan_credenciales_por_http
+[RESULTADO] tests/test_rf2_rf4.py::test_no_se_aceptan_credenciales_por_http: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_sesion_ajena_no_se_cierra
+[RESULTADO] tests/test_rf2_rf4.py::test_sesion_ajena_no_se_cierra: PASSED
+.
+[INICIO] tests/test_rf2_rf4.py::test_certificado_revocado_por_ca_rechazado
+[RESULTADO] tests/test_rf2_rf4.py::test_certificado_revocado_por_ca_rechazado: PASSED
+.
+[INICIO] tests/test_rf2_rf4_mtls_integracion.py::test_login_logout_reales_por_tls13_mtls
+[RESULTADO] tests/test_rf2_rf4_mtls_integracion.py::test_login_logout_reales_por_tls13_mtls: PASSED
+.
+[INICIO] tests/test_rf2_rf5.py::test_login_real_con_usuario_precargado_rf5
+[RESULTADO] tests/test_rf2_rf5.py::test_login_real_con_usuario_precargado_rf5: PASSED
+.
+[INICIO] tests/test_rf5.py::test_precarga_3_roles_guarda_hashes_y_no_password_plana
+[RESULTADO] tests/test_rf5.py::test_precarga_3_roles_guarda_hashes_y_no_password_plana: PASSED
+.
+[INICIO] tests/test_rf5.py::test_consulta_de_perfil_activo_y_sin_datos_sensibles
+[RESULTADO] tests/test_rf5.py::test_consulta_de_perfil_activo_y_sin_datos_sensibles: PASSED
+.
+[INICIO] tests/test_rf5.py::test_repetir_precarga_es_idempotente_y_respeta_usuario_manual
+[RESULTADO] tests/test_rf5.py::test_repetir_precarga_es_idempotente_y_respeta_usuario_manual: PASSED
+.
+[INICIO] tests/test_rf5.py::test_300_usuarios_repartidos_y_sin_duplicados
+[RESULTADO] tests/test_rf5.py::test_300_usuarios_repartidos_y_sin_duplicados: PASSED
+.
+[INICIO] tests/test_rf5.py::test_certificados_emitidos_y_reutilizados_sin_sustituir_claves
+[RESULTADO] tests/test_rf5.py::test_certificados_emitidos_y_reutilizados_sin_sustituir_claves: PASSED
+.
+[INICIO] tests/test_rf5.py::test_no_emite_una_ca_inexistente_ni_altera_la_base
+[RESULTADO] tests/test_rf5.py::test_no_emite_una_ca_inexistente_ni_altera_la_base: PASSED
+.
+[INICIO] tests/test_rf5_recursos.py::test_csv_invalido_se_rechaza_sin_sobrescribirlo
+[RESULTADO] tests/test_rf5_recursos.py::test_csv_invalido_se_rechaza_sin_sobrescribirlo: PASSED
+.
+[INICIO] tests/test_rf5_recursos.py::test_cli_precargar_y_resumen_son_ejecutables
+[RESULTADO] tests/test_rf5_recursos.py::test_cli_precargar_y_resumen_son_ejecutables: PASSED
+.
+[INICIO] tests/test_rf5_recursos.py::test_emision_registra_propiedades_de_certificado_cliente
+[RESULTADO] tests/test_rf5_recursos.py::test_emision_registra_propiedades_de_certificado_cliente: PASSED
+.
+[INICIO] tests/test_rf5_recursos.py::test_auditoria_acepta_dispositivo_rf1_adicional_de_usuario_rf5
+[RESULTADO] tests/test_rf5_recursos.py::test_auditoria_acepta_dispositivo_rf1_adicional_de_usuario_rf5: PASSED
+.
+[INICIO] tests/test_tls.py::test_contexto_exige_tls_13_y_certificado_cliente
+[RESULTADO] tests/test_tls.py::test_contexto_exige_tls_13_y_certificado_cliente: PASSED
+.
+[INICIO] tests/test_tls.py::test_contexto_falla_si_falta_material_tls
+[RESULTADO] tests/test_tls.py::test_contexto_falla_si_falta_material_tls: PASSED
+.
+[INICIO] tests/test_vpn_reconciliar.py::test_caducidad_bloquea_y_desconecta
+[RESULTADO] tests/test_vpn_reconciliar.py::test_caducidad_bloquea_y_desconecta: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf1_inmutabilidad_sqlite_y_revocacion_permitida
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf1_inmutabilidad_sqlite_y_revocacion_permitida: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_token_abort_revoca_solo_token
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_token_abort_revoca_solo_token: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_rechaza_segundo_dispositivo_con_vpn_activa
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_rechaza_segundo_dispositivo_con_vpn_activa: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_verifica_que_no_haya_tunel_rest
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_verifica_que_no_haya_tunel_rest: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_no_da_confirmacion_si_as_sigue_conectado
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_no_da_confirmacion_si_as_sigue_conectado: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_vpn_perfil_generado_es_userlogin_nunca_autologin
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_vpn_perfil_generado_es_userlogin_nunca_autologin: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf5_rs1_auditoria_detecta_incompleto
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf5_rs1_auditoria_detecta_incompleto: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_tunel_rechaza_localhost_y_ip_publica
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_tunel_rechaza_localhost_y_ip_publica: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_abort_endpoint_rechaza_nuevo_uso_del_token
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_abort_endpoint_rechaza_nuevo_uso_del_token: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_si_la_vpn_sigue_activa_nunca_responde_200
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_si_la_vpn_sigue_activa_nunca_responde_200: PASSED
+.
+[INICIO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_si_authorize_falla_revoca_token_y_compensa
+[RESULTADO] tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_si_authorize_falla_revoca_token_y_compensa: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_consulta_status_rest_y_no_usa_management_socket
+[RESULTADO] tests/test_vpn_rest_as.py::test_consulta_status_rest_y_no_usa_management_socket: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_desconectar_solo_el_usuario_solicitado
+[RESULTADO] tests/test_vpn_rest_as.py::test_desconectar_solo_el_usuario_solicitado: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_error_admin
+[RESULTADO] tests/test_vpn_rest_as.py::test_error_admin: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_no_acepta_base_http
+[RESULTADO] tests/test_vpn_rest_as.py::test_no_acepta_base_http: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_no_acepta_url_con_credenciales
+[RESULTADO] tests/test_vpn_rest_as.py::test_no_acepta_url_con_credenciales: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_no_acepta_login_sin_token
+[RESULTADO] tests/test_vpn_rest_as.py::test_no_acepta_login_sin_token: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_username_obligatorio
+[RESULTADO] tests/test_vpn_rest_as.py::test_username_obligatorio: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_respuesta_status_malformada
+[RESULTADO] tests/test_vpn_rest_as.py::test_respuesta_status_malformada: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_ruta_estado_vpn_solo_muestra_propias
+[RESULTADO] tests/test_vpn_rest_as.py::test_ruta_estado_vpn_solo_muestra_propias: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_logout_rest_desconecta_cuenta_de_rf2_y_revoca
+[RESULTADO] tests/test_vpn_rest_as.py::test_logout_rest_desconecta_cuenta_de_rf2_y_revoca: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_logout_rest_fallo_vpn_no_revoca_web
+[RESULTADO] tests/test_vpn_rest_as.py::test_logout_rest_fallo_vpn_no_revoca_web: PASSED
+.
+[INICIO] tests/test_vpn_rest_as.py::test_gateway_unico_activa_rutas_vpn_solo_en_modo_rest
+[RESULTADO] tests/test_vpn_rest_as.py::test_gateway_unico_activa_rutas_vpn_solo_en_modo_rest: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_acceso_denegar_y_habilitar_por_rest
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_acceso_denegar_y_habilitar_por_rest: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_alta_se_crea_bloqueada_y_no_admin
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_alta_se_crea_bloqueada_y_no_admin: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_autorizacion_sin_politica_confirmada_se_rechaza
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_autorizacion_sin_politica_confirmada_se_rechaza: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_autorizacion_por_identidad_rf2_y_hash
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_autorizacion_por_identidad_rf2_y_hash: PASSED
+. [ 82%]
+
+[INICIO] tests/test_vpn_rest_integracion.py::test_logout_bloquea_corta_y_revoca_cuenta_completa
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_logout_bloquea_corta_y_revoca_cuenta_completa: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_fallo_rest_revoca_tokens_de_aplicacion
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_fallo_rest_revoca_tokens_de_aplicacion: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_fijar_acceso_por_rest_aplica_cambio_warm_sin_socket
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_fijar_acceso_por_rest_aplica_cambio_warm_sin_socket: PASSED
+.
+[INICIO] tests/test_vpn_rest_integracion.py::test_error_restart_no_se_comunica_como_autorizacion_exitosa
+[RESULTADO] tests/test_vpn_rest_integracion.py::test_error_restart_no_se_comunica_como_autorizacion_exitosa: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta0]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta0]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta1]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta1]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta2]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta2]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta3]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta3]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta4]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta4]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[400]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[400]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[401]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[401]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[403]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[403]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[404]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[404]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[500]
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[500]: PASSED
+.
+[INICIO] tests/test_vpn_rest_userprop.py::test_status_sigue_exigiendo_dict
+[RESULTADO] tests/test_vpn_rest_userprop.py::test_status_sigue_exigiendo_dict: PASSED
+.                                                          [100%]
+==================================== PASSES ====================================
+_________________________ test_ataque_controlado_local _________________________
+----------------------------- Captured stdout call -----------------------------
+{
+  "suplantacion_servidor_ca_desconocida": true,
+  "cliente_sin_certificado_mtls": true,
+  "cliente_tls_1_2_obsoleto": true
+}
+Pruebas TLS negativas superadas. Evidencia: evidencias/ataques/tls_opcional.json
+_________ test_hash_de_contrasena_se_verifica_sin_guardar_la_original __________
+----------------------------- Captured stdout call -----------------------------
+[SEGURIDAD] Generando hash scrypt sin guardar la contraseña original
+[SEGURIDAD] Verificando contraseña correcta
+[SEGURIDAD] Verificando que una contraseña incorrecta se rechaza
+___________________ test_base_de_datos_crea_el_esquema_comun ___________________
+----------------------------- Captured stdout call -----------------------------
+[BD] Inicializando base SQLite temporal: rf1.sqlite3
+[BD] Tablas users y device_pairings creadas con sus columnas principales
+__________ test_negociacion_mtls_13_acepta_cliente_firmado_por_la_ca ___________
+----------------------------- Captured stdout call -----------------------------
+[mTLS] Cliente con certificado válido: handshake TLS 1.3 aceptado
+__________________ test_mtls_rechaza_cliente_sin_certificado ___________________
+----------------------------- Captured stdout call -----------------------------
+[mTLS] Cliente sin certificado: handshake rechazado
+_______________________ test_mtls_rechaza_cliente_tls_12 _______________________
+----------------------------- Captured stdout call -----------------------------
+[mTLS] Cliente TLS 1.2: negociación rechazada
+___________________ test_pki_emite_servidor_cliente_y_revoca ___________________
+----------------------------- Captured stdout call -----------------------------
+[PKI] Creando CA temporal y emitiendo certificados de servidor y cliente
+[PKI] Certificados emitidos: serverAuth y clientAuth verificados
+[PKI] Revocando el certificado cliente y generando la CRL
+[PKI] Certificado revocado: verificación negativa y CRL confirmada
+____________________________ test_cli_pki_funciona _____________________________
+----------------------------- Captured stdout call -----------------------------
+[PKI] Ejecutando el comando CLI crear-ca en una raíz temporal
+[PKI] CLI finalizó correctamente
+_________________ test_registro_rechaza_credenciales_invalidas _________________
+----------------------------- Captured stdout call -----------------------------
+[RF1] Enviando un registro con credenciales inválidas
+[RF1] Registro rechazado con HTTP 401
+__________ test_registro_emite_certificado_y_persiste_emparejamiento ___________
+----------------------------- Captured stdout call -----------------------------
+[RF1] Preparando usuario activo, CA temporal y base SQLite aislada
+[RF1] Enviando clave pública RSA para registrar el dispositivo BYOD
+[RF1] Certificado cliente y certificado CA devueltos por la API
+[RF1] Emparejamiento persistido: usuario, dispositivo, huella, serie, ruta y estado activo
+[RF1] Certificado almacenado con uso exclusivo clientAuth
+_____________ test_registro_rechaza_reutilizar_dispositivo_o_clave _____________
+----------------------------- Captured stdout call -----------------------------
+[RF1] Registrando el primer emparejamiento válido
+[RF1] Intentando reutilizar el mismo device_id con otra clave
+[RF1] Intentando reutilizar la misma clave con otro device_id
+[RF1] Ambas reutilizaciones fueron rechazadas con HTTP 409
+___________ test_precarga_3_roles_guarda_hashes_y_no_password_plana ____________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Precargando tres cuentas, una por cada rol
+[RF5] Roles, hashes scrypt y ausencia de contraseñas planas verificados
+_____________ test_consulta_de_perfil_activo_y_sin_datos_sensibles _____________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Precargando cuentas y consultando el perfil de una cuenta PAS
+[RF5] Perfil activo consultado y cuenta revocada correctamente ocultada
+________ test_repetir_precarga_es_idempotente_y_respeta_usuario_manual _________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Creando una cuenta manual que colisiona con una cuenta RF5
+[RF5] Colisión detectada sin sobrescribir la cuenta manual
+________________ test_300_usuarios_repartidos_y_sin_duplicados _________________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Precargando 300 cuentas y comprobando el reparto por roles
+[RF5] 300 cuentas repartidas, sin duplicados y recarga idempotente
+________ test_certificados_emitidos_y_reutilizados_sin_sustituir_claves ________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Emitiendo certificados para las cuentas precargadas
+[RF5] Certificados emitidos y reutilizados sin sustituir claves privadas
+______________ test_no_emite_una_ca_inexistente_ni_altera_la_base ______________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Intentando emitir certificados sin una CA existente
+[RF5] Emisión rechazada y base de datos conservada sin cambios
+_______________ test_csv_invalido_se_rechaza_sin_sobrescribirlo ________________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Escribiendo un CSV inválido y comprobando que no se sobrescribe
+[RF5] CSV inválido rechazado y contenido original conservado
+_________________ test_cli_precargar_y_resumen_son_ejecutables _________________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Ejecutando el CLI de precarga con una base temporal
+[RF5] CLI finalizó y comunicó tres cuentas nuevas
+___________ test_emision_registra_propiedades_de_certificado_cliente ___________
+----------------------------- Captured stdout call -----------------------------
+[RF5] Precargando usuarios y emitiendo un certificado cliente
+[RF5] clientAuth, dispositivo, usuario y ruta persistida verificados
+_______________ test_contexto_exige_tls_13_y_certificado_cliente _______________
+----------------------------- Captured stdout call -----------------------------
+[TLS] Version permitida: TLS 1.3; certificados cliente: obligatorios
+__________________ test_contexto_falla_si_falta_material_tls ___________________
+----------------------------- Captured stdout call -----------------------------
+[TLS] Material incompleto rechazado explícitamente
+- generated xml file: /mnt/c/Users/javim/Desktop/CARRERA/4º DE CARRERA/1ER CUATRIMESTRE/SSII/SSII-PAI2-G13/SSII-PAI-2/PAI2-STX/evidencias/logs/pytest_junit.xml -
+=========================== short test summary info ============================
+PASSED tests/test_ataque_opcional.py::test_ataque_controlado_local
+PASSED tests/test_common.py::test_hash_de_contrasena_se_verifica_sin_guardar_la_original
+PASSED tests/test_common.py::test_base_de_datos_crea_el_esquema_comun
+PASSED tests/test_interfaz_consola.py::test_descubrir_identidades_sin_abrir_claves
+PASSED tests/test_interfaz_consola.py::test_login_logout_consulta_y_401_con_token_anterior
+PASSED tests/test_interfaz_consola.py::test_login_rechazado_no_guarda_token
+PASSED tests/test_interfaz_consola.py::test_rf1_alta_genera_clave_local_y_no_sobrescribe
+PASSED tests/test_interfaz_consola.py::test_rf1_alta_acepta_el_certificado_que_ya_guardo_el_servidor
+PASSED tests/test_interfaz_consola.py::test_no_acepta_http_en_gateway_y_registro
+PASSED tests/test_mtls.py::test_negociacion_mtls_13_acepta_cliente_firmado_por_la_ca
+PASSED tests/test_mtls.py::test_mtls_rechaza_cliente_sin_certificado
+PASSED tests/test_mtls.py::test_mtls_rechaza_cliente_tls_12
+PASSED tests/test_pki.py::test_pki_emite_servidor_cliente_y_revoca
+PASSED tests/test_pki.py::test_cli_pki_funciona
+PASSED tests/test_pki.py::test_certificados_nuevos_tienen_aki_ski_y_validacion_estricta
+PASSED tests/test_rf1_registration.py::test_health_endpoint
+PASSED tests/test_rf1_registration.py::test_registro_rechaza_credenciales_invalidas
+PASSED tests/test_rf1_registration.py::test_registro_emite_certificado_y_persiste_emparejamiento
+PASSED tests/test_rf1_registration.py::test_registro_rechaza_reutilizar_dispositivo_o_clave
+PASSED tests/test_rf2_rf4.py::test_login_me_logout_rechaza_reutilizacion_y_audita
+PASSED tests/test_rf2_rf4.py::test_login_rechaza_contrasena_incorrecta
+PASSED tests/test_rf2_rf4.py::test_login_rechaza_firma_invalida
+PASSED tests/test_rf2_rf4.py::test_login_rechaza_certificado_ajeno_al_dispositivo
+PASSED tests/test_rf2_rf4.py::test_login_rechaza_reutilizar_desafio
+PASSED tests/test_rf2_rf4.py::test_bloqueo_usuario_invalida_sesion
+PASSED tests/test_rf2_rf4.py::test_revocacion_dispositivo_invalida_sesion
+PASSED tests/test_rf2_rf4.py::test_sesion_caducada_no_funciona
+PASSED tests/test_rf2_rf4.py::test_no_se_aceptan_credenciales_por_http
+PASSED tests/test_rf2_rf4.py::test_sesion_ajena_no_se_cierra
+PASSED tests/test_rf2_rf4.py::test_certificado_revocado_por_ca_rechazado
+PASSED tests/test_rf2_rf4_mtls_integracion.py::test_login_logout_reales_por_tls13_mtls
+PASSED tests/test_rf2_rf5.py::test_login_real_con_usuario_precargado_rf5
+PASSED tests/test_rf5.py::test_precarga_3_roles_guarda_hashes_y_no_password_plana
+PASSED tests/test_rf5.py::test_consulta_de_perfil_activo_y_sin_datos_sensibles
+PASSED tests/test_rf5.py::test_repetir_precarga_es_idempotente_y_respeta_usuario_manual
+PASSED tests/test_rf5.py::test_300_usuarios_repartidos_y_sin_duplicados
+PASSED tests/test_rf5.py::test_certificados_emitidos_y_reutilizados_sin_sustituir_claves
+PASSED tests/test_rf5.py::test_no_emite_una_ca_inexistente_ni_altera_la_base
+PASSED tests/test_rf5_recursos.py::test_csv_invalido_se_rechaza_sin_sobrescribirlo
+PASSED tests/test_rf5_recursos.py::test_cli_precargar_y_resumen_son_ejecutables
+PASSED tests/test_rf5_recursos.py::test_emision_registra_propiedades_de_certificado_cliente
+PASSED tests/test_rf5_recursos.py::test_auditoria_acepta_dispositivo_rf1_adicional_de_usuario_rf5
+PASSED tests/test_tls.py::test_contexto_exige_tls_13_y_certificado_cliente
+PASSED tests/test_tls.py::test_contexto_falla_si_falta_material_tls
+PASSED tests/test_vpn_reconciliar.py::test_caducidad_bloquea_y_desconecta
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf1_inmutabilidad_sqlite_y_revocacion_permitida
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_token_abort_revoca_solo_token
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_rechaza_segundo_dispositivo_con_vpn_activa
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_verifica_que_no_haya_tunel_rest
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_no_da_confirmacion_si_as_sigue_conectado
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_vpn_perfil_generado_es_userlogin_nunca_autologin
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf5_rs1_auditoria_detecta_incompleto
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_tunel_rechaza_localhost_y_ip_publica
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_abort_endpoint_rechaza_nuevo_uso_del_token
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf4_si_la_vpn_sigue_activa_nunca_responde_200
+PASSED tests/test_vpn_refuerzo_rf1_rf2_rf4.py::test_rf2_si_authorize_falla_revoca_token_y_compensa
+PASSED tests/test_vpn_rest_as.py::test_consulta_status_rest_y_no_usa_management_socket
+PASSED tests/test_vpn_rest_as.py::test_desconectar_solo_el_usuario_solicitado
+PASSED tests/test_vpn_rest_as.py::test_error_admin
+PASSED tests/test_vpn_rest_as.py::test_no_acepta_base_http
+PASSED tests/test_vpn_rest_as.py::test_no_acepta_url_con_credenciales
+PASSED tests/test_vpn_rest_as.py::test_no_acepta_login_sin_token
+PASSED tests/test_vpn_rest_as.py::test_username_obligatorio
+PASSED tests/test_vpn_rest_as.py::test_respuesta_status_malformada
+PASSED tests/test_vpn_rest_as.py::test_ruta_estado_vpn_solo_muestra_propias
+PASSED tests/test_vpn_rest_as.py::test_logout_rest_desconecta_cuenta_de_rf2_y_revoca
+PASSED tests/test_vpn_rest_as.py::test_logout_rest_fallo_vpn_no_revoca_web
+PASSED tests/test_vpn_rest_as.py::test_gateway_unico_activa_rutas_vpn_solo_en_modo_rest
+PASSED tests/test_vpn_rest_integracion.py::test_acceso_denegar_y_habilitar_por_rest
+PASSED tests/test_vpn_rest_integracion.py::test_alta_se_crea_bloqueada_y_no_admin
+PASSED tests/test_vpn_rest_integracion.py::test_autorizacion_sin_politica_confirmada_se_rechaza
+PASSED tests/test_vpn_rest_integracion.py::test_autorizacion_por_identidad_rf2_y_hash
+PASSED tests/test_vpn_rest_integracion.py::test_logout_bloquea_corta_y_revoca_cuenta_completa
+PASSED tests/test_vpn_rest_integracion.py::test_fallo_rest_revoca_tokens_de_aplicacion
+PASSED tests/test_vpn_rest_integracion.py::test_fijar_acceso_por_rest_aplica_cambio_warm_sin_socket
+PASSED tests/test_vpn_rest_integracion.py::test_error_restart_no_se_comunica_como_autorizacion_exitosa
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta0]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta1]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta2]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta3]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_acepta_200_sin_dict[respuesta4]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[400]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[401]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[403]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[404]
+PASSED tests/test_vpn_rest_userprop.py::test_userprop_set_rechaza_errores[500]
+PASSED tests/test_vpn_rest_userprop.py::test_status_sigue_exigiendo_dict
+87 passed in 90.25s (0:01:30)
