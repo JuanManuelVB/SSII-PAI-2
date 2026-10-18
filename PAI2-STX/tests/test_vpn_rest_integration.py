@@ -14,15 +14,17 @@ import src.vpn_rest_as.rutas as vpn_mod
 
 def mock_api():
     recorded = []
+    connected = {'active': True}
     def handler(req):
         recorded.append((req.method, req.url.path, req.content))
         if req.url.path == '/api/auth/login/userpassword':
             return httpx.Response(200, json={'auth_token': 't'})
         if req.url.path == '/api/vpn/status':
-            return httpx.Response(200, json={'vpn_clients': [{'username':'rf5_inv_001'}]})
+            return httpx.Response(200, json={'vpn_clients': [{'username':'rf5_inv_001'}] if connected['active'] else []})
         if req.url.path == '/api/userprop/set':
             return httpx.Response(200, json={})
         if req.url.path == '/api/vpn/client/disconnect':
+            connected['active'] = False
             return httpx.Response(200, json={})
         if req.url.path == '/api/server/restart':
             return httpx.Response(200, text='')
@@ -98,7 +100,7 @@ def test_logout_bloquea_corta_y_revoca_cuenta_completa(monkeypatch, tmp_path):
     with conectar_base_datos(db) as c:
         assert c.execute('SELECT COUNT(*) FROM sessions WHERE revoked_at IS NULL').fetchone()[0]==0
     ops=[path for _,path,_ in calls if path != '/api/auth/login/userpassword']
-    assert ops==['/api/userprop/set','/api/server/restart','/api/vpn/client/disconnect']
+    assert ops==['/api/userprop/set','/api/server/restart','/api/vpn/client/disconnect','/api/vpn/status']
 
 
 def test_fallo_rest_revoca_tokens_de_aplicacion(monkeypatch,tmp_path):

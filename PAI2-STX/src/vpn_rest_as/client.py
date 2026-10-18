@@ -6,6 +6,7 @@ Documentación oficial: https://openvpn.net/as-docs/rest-api/
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
@@ -136,6 +137,20 @@ class AccessServerClient:
                 return {'status': 'already_disconnected'}
             raise
 
+    def esperar_desconexion(self, username: str, *, intentos: int = 4, espera: float = 0.3) -> dict:
+        """Confirma por GET REST que el servidor ya no ve túneles del usuario.
+
+        Un POST de desconexión aceptado NO prueba que el túnel terminó.
+        """
+        if intentos < 1 or intentos > 12 or espera < 0 or espera > 2:
+            raise ValueError('Parámetros de comprobación fuera de rango')
+        for i in range(intentos):
+            if not self.conexiones_usuario(username):
+                return {'status': 'disconnected_verified', 'username': username}
+            if i < intentos - 1:
+                time.sleep(espera)
+        raise AccessServerError('La VPN sigue conectada después de solicitar su desconexión')
+
     def fijar_acceso(self, username: str, *, permitido: bool) -> dict:
         """POST /userprop/set: deny=true bloquea nuevos logins VPN.
 
@@ -152,6 +167,45 @@ class AccessServerClient:
         # hasta que el servidor haya aceptado solicitar un reinicio warm.
         self._authenticated('POST', '/api/server/restart?restartMode=warm')
         return resultado
+
+    def generar_perfil_usuario(self, username: str, *, device_id: str = '') -> bytes:
+        """Genera un perfil userlogin individual mediante la API REST nativa.
+
+        La respuesta contiene secretos y jamás se imprime ni se registra.
+        No emite perfiles autologin que eludan las credenciales.
+        """
+        if not isinstance(username, str) or not username or len(username) > 64:
+            raise ValueError('usuario VPN inválido')
+        payload = {
+            'username': username, 'profile_type': 'userlogin', 'tls_crypt_v2': True,
+            'comment': ('BYODSEC:' + device_id)[:96],
+        }
+        try:
+            with self._cliente() as client:
+                auth = self._json(client.post('/api/auth/login/userpassword', json={
+                    'username': self.config.username, 'password': self.config.password,
+                    'request_admin': True,
+                }))
+                token = auth.get('auth_token')
+                if not isinstance(token, str) or not token:
+                    raise AccessServerError('No se obtuvo token de administración')
+                response = client.post('/api/profiles/create', json=payload, headers={
+                    'X-OpenVPN-As-AuthToken': token,
+                    'Accept': 'application/x-openvpn-profile',
+                })
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as exc:
+                    raise AccessServerError(f'Error HTTP {exc.response.status_code} generando perfil') from exc
+                # La API 3.2+ devuelve HTTP 201 y bytes de perfil .ovpn.
+                data = response.content
+                if response.status_code != 201 or not data or len(data) > 1024 * 1024:
+                    raise AccessServerError('Respuesta de perfil inválida')
+                if b'client' not in data[:1024] or b'<cert>' not in data:
+                    raise AccessServerError('Respuesta sin estructura de perfil OpenVPN')
+                return data
+        except httpx.RequestError as exc:
+            raise AccessServerError('Fallo HTTPS al crear perfil VPN') from exc
 
     def crear_usuario_bloqueado(self, username: str) -> dict:
         """Da de alta UNA identidad de laboratorio, inhabilitada por defecto.

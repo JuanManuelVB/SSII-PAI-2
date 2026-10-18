@@ -111,3 +111,15 @@ def validar_sesion(token: str, ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> dict
             (_hash_token(token), _marca(_ahora())),
         ).fetchone()
     return dict(fila) if fila is not None else None
+
+
+def revocar_token(token: str, ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> bool:
+    """Revoca exclusivamente una sesión RF2, sin depender de OpenVPN REST."""
+    if not token:
+        return False
+    with conectar_base_datos(ruta) as conexion:
+        resultado = conexion.execute(
+            "UPDATE sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL",
+            (_marca(_ahora()), _hash_token(token)),
+        )
+    return resultado.rowcount == 1

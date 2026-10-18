@@ -6,9 +6,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from src.rf2.rutas import _db, obtener_token
-from src.vpn_rest_as.autorizaciones import guardar_concesion, autorizacion_vigente
+from src.vpn_rest_as.autorizaciones import guardar_concesion, autorizacion_vigente, hay_concesion_de_otro_dispositivo
 
 from src.rf2.rutas import sesion_autenticada
+from src.rf2.sesiones import revocar_token
 from src.vpn_rest_as.client import AccessServerClient, AccessServerError, ConfigAccessServer
 
 router = APIRouter(prefix='/api/v1/vpn', tags=['VPN REST'])
@@ -55,9 +56,21 @@ def autorizar_vpn(
     import os
     if os.environ.get('BYODSEC_VPN_DEFAULT_DENY') != 'confirmed':
         raise HTTPException(503, 'No se ha verificado la política de acceso predeterminado bloqueado')
+    if hay_concesion_de_otro_dispositivo(sesion['username'], sesion['device_id'], _db(request)):
+        revocar_token(token, _db(request))
+        raise HTTPException(409, 'La cuenta VPN tiene otra sesión de dispositivo activa')
     try:
         servicio.fijar_acceso(sesion['username'], permitido=True)
-    except AccessServerError as exc:
-        raise HTTPException(503, 'No se pudo autorizar la VPN') from exc
-    guardar_concesion(token, sesion['username'], sesion['device_id'], _db(request))
-    return {'status': 'authorized', 'username': sesion['username']}
+        guardar_concesion(token, sesion['username'], sesion['device_id'], _db(request))
+    except Exception as exc:
+        # Puede haberse aplicado deny=false antes de fallar el reinicio REST.
+        # Compensamos por REST y revocamos el token RF2 sin esperar a caducidad.
+        revocar_token(token, _db(request))
+        try:
+            servicio.fijar_acceso(sesion['username'], permitido=False)
+            servicio.desconectar_usuario(sesion['username'])
+        except AccessServerError:
+            # El reconciliador debe volver a intentarlo; no anunciar éxito.
+            pass
+        raise HTTPException(503, 'La autorización VPN no está confirmada; token RF2 revocado') from exc
+    return {'status': 'authorized', 'username': sesion['username'], 'device_id': sesion['device_id']}

@@ -111,13 +111,16 @@ def test_logout_rest_desconecta_cuenta_de_rf2_y_revoca(monkeypatch, tmp_path):
         def desconectar_usuario(self, username):
             acciones.append(('desconectar',username))
             return {}
+        def esperar_desconexion(self, username):
+            acciones.append(('verificar_desconexion', username))
+            return {'status':'disconnected_verified'}
     app.dependency_overrides[proveedor] = lambda: Falso()
     monkeypatch.setattr(mod, 'bloquear_concesiones_usuario', lambda username, ruta: acciones.append(('revocar',username)))
     monkeypatch.setattr(mod, 'registrar_cierre', lambda *a,**k: None)
     r=TestClient(app).post('/api/v1/sessions/logout')
     assert r.status_code == 200
     assert r.json()['status'] == 'closed'
-    assert acciones == [('bloquear','rf5_inv_001', False),('desconectar','rf5_inv_001'),('revocar','rf5_inv_001')]
+    assert acciones == [('bloquear','rf5_inv_001', False),('desconectar','rf5_inv_001'),('verificar_desconexion','rf5_inv_001'),('revocar','rf5_inv_001')]
 
 
 def test_logout_rest_fallo_vpn_no_revoca_web(monkeypatch):

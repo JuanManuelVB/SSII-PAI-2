@@ -195,8 +195,14 @@ class ClienteConsola:
                 habilitar = cliente.post('/api/v1/vpn/authorize',
                                          headers={'Authorization': f'Bearer {token}'})
                 if habilitar.status_code != 200:
-                    # No se anuncia una sesión iniciada si no se ha logrado
-                    # habilitar VPN. La cuenta AS permanece bloqueada.
+                    # El gateway revoca la sesión y trata de revertir en AS.
+                    # Intentamos revocación adicional por REST mTLS incluso
+                    # si el error es de red o el proveedor está caído.
+                    try:
+                        cliente.post('/api/v1/sessions/abort',
+                                     headers={'Authorization': f'Bearer {token}'}, timeout=5)
+                    except httpx.RequestError:
+                        pass
                     raise ErrorConsola('RF2 válido, pero la VPN no pudo autorizarse: '
                                        + descripcion_error_http(habilitar))
             self._http = cliente
@@ -227,6 +233,14 @@ class ClienteConsola:
         datos = respuesta.json()
         return {campo: datos.get(campo) for campo in ("username", "device_id", "role", "expires_at")}
 
+    def consultar_vpn(self) -> dict:
+        """Consulta por REST las conexiones VPN del usuario ligado a RF2."""
+        headers = self._autorizar()
+        assert self._http is not None
+        respuesta = self._http.get('/api/v1/vpn/me', headers=headers)
+        exigir_correcta(respuesta)
+        return respuesta.json()
+
     def cerrar_sesion(self, *, comprobar_revocacion: bool = True) -> ResultadoCierre:
         headers = self._autorizar()
         assert self._http is not None and self._contexto is not None
@@ -236,6 +250,13 @@ class ClienteConsola:
         if respuesta.status_code == 401:
             self._cerrar_local()
             raise ErrorConsola("HTTP 401: sesión ya inválida o caducada")
+        if respuesta.status_code == 503:
+            # Logout revoca el token en SQLite aun cuando el proveedor VPN
+            # no confirma la desconexión. El usuario nunca debe interpretar
+            # este estado como cierre VPN completado.
+            self._cerrar_local()
+            raise ErrorConsola("Sesión BYODSEC revocada; desconexión VPN sin confirmar. "
+                               "Comprueba la opción 9 o el panel de Access Server")
         exigir_correcta(respuesta)
         if respuesta.json().get("status") != "closed":
             raise ErrorConsola("La respuesta de cierre no confirma revocación")

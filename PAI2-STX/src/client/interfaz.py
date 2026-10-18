@@ -57,6 +57,7 @@ def cabecera(cliente: ClienteConsola) -> None:
         ("6", "Auditoría", "eventos RF1 y RF4 sin secretos"),
         ("7", "Demostración completa", "login → consulta → logout → 401"),
         ("8", "Inspeccionar certificados", "certificados de cliente en el equipo"),
+        ("9", "Estado VPN REAL", "consulta REST del usuario autenticado"),
         ("0", "Salir", "cerrar cliente TLS"),
     ]:
         tabla.add_row(f"[bold cyan][{num}][/]", titulo, f"[dim]{descripcion}[/]")
@@ -147,6 +148,26 @@ def consultar_interactivo(cliente: ClienteConsola) -> None:
         tabla.add_row(etiqueta, str(datos.get(campo, "-")))
     consola.print(tabla)
     consola.print("[green]HTTP 200 · Sesión autorizada mediante mTLS y token[/]")
+
+
+def vpn_interactivo(cliente: ClienteConsola) -> None:
+    datos = cliente.consultar_vpn()
+    consola.print(Panel(
+        f"Usuario: {datos.get('username', '-')}\n"
+        f"Conectado: {bool(datos.get('connected'))}\n"
+        f"Conexiones reales en Access Server: {datos.get('count', 0)}",
+        title='VPN · Estado verificado por API REST', border_style='cyan'))
+    tabla = Table(box=box.ROUNDED)
+    tabla.add_column('IP de VPN')
+    tabla.add_column('Cifrado de datos')
+    tabla.add_column('Conectado desde')
+    for c in datos.get('connections', []):
+        tabla.add_row(str(c.get('vpn_ip') or '-'), str(c.get('cipher') or '-'),
+                      str(c.get('connected_since') or '-'))
+    consola.print(tabla)
+    if not datos.get('connected'):
+        consola.print('[yellow]RF2 puede estar activo sin un túnel VPN conectado.\n'
+                      'Importa el perfil userlogin en OpenVPN Connect y vuelve a comprobar.[/]')
 
 
 def logout_interactivo(cliente: ClienteConsola) -> None:
@@ -265,7 +286,7 @@ def main() -> None:
     try:
         while True:
             cabecera(cliente)
-            opcion = Prompt.ask("Selecciona una opción", choices=[str(i) for i in range(9)], default="2")
+            opcion = Prompt.ask("Selecciona una opción", choices=[str(i) for i in range(10)], default="2")
             if opcion == "0":
                 if cliente.conectado:
                     consola.print("[yellow]Hay una sesión activa.[/]")
@@ -298,6 +319,8 @@ def main() -> None:
                     demo_completa(cliente)
                 elif opcion == "8":
                     mostrar_identidades()
+                elif opcion == "9":
+                    vpn_interactivo(cliente)
             except Exception as exc:
                 error_publico(exc)
             pausa()

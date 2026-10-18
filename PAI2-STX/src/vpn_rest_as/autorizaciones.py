@@ -55,3 +55,19 @@ def bloquear_concesiones_usuario(username: str, ruta: Path = RUTA_BASE_DATOS_POR
         # podrá reactivar una VPN después de logout.
         conn.execute('''UPDATE sessions SET revoked_at=?
                     WHERE username=? AND revoked_at IS NULL''', (now,username))
+
+
+def hay_concesion_de_otro_dispositivo(username: str, device_id: str,
+                                     ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> bool:
+    """No permitir que dos dispositivos compartan la cuenta VPN userlogin."""
+    from src.rf2.sesiones import inicializar_sesiones
+    inicializar_sesiones(ruta)
+    inicializar(ruta)
+    ahora = datetime.now(timezone.utc).isoformat()
+    with conectar_base_datos(ruta) as conn:
+        fila = conn.execute("""SELECT 1 FROM vpn_grants g
+            JOIN sessions s ON s.token_hash=g.token_hash
+            WHERE g.username=? AND g.device_id<>? AND g.disabled_at IS NULL
+              AND s.revoked_at IS NULL AND s.expires_at>? LIMIT 1""",
+            (username, device_id, ahora)).fetchone()
+    return fila is not None

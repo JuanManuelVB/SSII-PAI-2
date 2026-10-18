@@ -81,3 +81,21 @@ def inicializar_base_datos(
             conexion.execute(
                 "ALTER TABLE device_pairings ADD COLUMN certificate_path TEXT"
             )
+
+        # RF1: un emparejamiento no se modifica por UPDATE. Para sustituir
+        # una clave se revoca el dispositivo y se crea un emparejamiento nuevo.
+        conexion.execute("""
+            CREATE TRIGGER IF NOT EXISTS rf1_pairing_immutable
+            BEFORE UPDATE OF username, public_key_fingerprint, certificate_serial
+            ON device_pairings
+            WHEN NEW.username != OLD.username OR
+                 NEW.public_key_fingerprint != OLD.public_key_fingerprint OR
+                 NEW.certificate_serial != OLD.certificate_serial
+            BEGIN SELECT RAISE(ABORT, 'RF1: requiere revocación y nueva emisión'); END
+        """)
+        conexion.execute("""
+            CREATE TRIGGER IF NOT EXISTS rf1_username_immutable
+            BEFORE UPDATE OF username ON users
+            WHEN NEW.username != OLD.username
+            BEGIN SELECT RAISE(ABORT, 'RF1: identidad inmutable'); END
+        """)

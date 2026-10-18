@@ -39,6 +39,7 @@ def ejecutar(servicio=None, ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO):
         servicio.fijar_acceso(username, permitido=False)
         try:
             servicio.desconectar_usuario(username)
+            servicio.esperar_desconexion(username)
         except AccessServerError:
             # Si no hay clientes, el bloqueo ya previene reconexiones, pero
             # exigimos comprobación explícita de que no quedan activos.

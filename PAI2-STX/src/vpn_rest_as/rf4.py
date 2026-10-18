@@ -8,13 +8,28 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from src.rf2.rutas import _db, obtener_token, sesion_autenticada
-from src.rf4.cierre import revocar_sesion
+from src.rf2.sesiones import revocar_token
 from src.rf4.auditoria import RUTA_AUDITORIA, registrar_cierre
 from src.vpn_rest_as.client import AccessServerClient, AccessServerError
 from src.vpn_rest_as.autorizaciones import bloquear_concesiones_usuario
 from src.vpn_rest_as.rutas import proveedor
 
 router = APIRouter(prefix='/api/v1/sessions', tags=['RF4 REST'])
+
+
+@router.post('/abort', status_code=204)
+def abortar_login_fallido(
+    request: Request,
+    sesion: dict = Depends(sesion_autenticada),
+    token: str = Depends(obtener_token),
+) -> Response:
+    """Invalida un token RF2 si falló la autorización VPN en el cliente.
+
+    No cambia permisos AS; el gateway debe compensar por REST los cambios
+    parciales cuando ocurre un error en el proveedor VPN.
+    """
+    revocar_token(token, _db(request))
+    return Response(status_code=204, headers={'Cache-Control': 'no-store'})
 
 
 @router.post('/logout')
@@ -34,6 +49,7 @@ def logout_rest(
         error_vpn = 'No se pudo bloquear la reconexión VPN'
     try:
         servicio.desconectar_usuario(sesion['username'])
+        servicio.esperar_desconexion(sesion['username'])
     except AccessServerError:
         error_vpn = 'No se confirmó la desconexión VPN'
 
@@ -61,4 +77,4 @@ def logout_rest(
     response.headers['Connection'] = 'close'
     if error_vpn:
         raise HTTPException(503, error_vpn + '; sesiones BYODSEC revocadas')
-    return {'status': 'closed', 'vpn_disconnect': 'requested_and_access_denied'}
+    return {'status': 'closed', 'vpn_disconnect': 'verified', 'reconnect': 'denied'}
