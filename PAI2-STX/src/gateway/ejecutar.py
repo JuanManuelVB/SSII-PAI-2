@@ -1,7 +1,6 @@
-"""Arranque obligatorio TLS 1.3/mTLS del gateway BYODSEC (RF2/RF4/VPN).
+"""Arranque obligatorio TLS 1.3/mTLS del gateway BYODSEC (RF2/RF4).
 
 Ejecutar: python -m src.gateway.ejecutar [--port 9443]
-Con BYODSEC_VPN_REST=1 se activa la integración REST con Access Server.
 Nunca exponer los endpoints de autenticación con un servidor HTTP normal.
 """
 

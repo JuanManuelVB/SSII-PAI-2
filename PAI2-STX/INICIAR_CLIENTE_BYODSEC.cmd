@@ -19,8 +19,6 @@ if not exist "pki\ca\ca.crt" (
   pause
   exit /b 1
 )
-set "BYODSEC_VPN_REST="
-set "BYODSEC_VPN_DEFAULT_DENY="
 py -m src.client.interfaz --url https://localhost:9443 --registro-url https://localhost:8444
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" (

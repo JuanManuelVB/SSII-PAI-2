@@ -22,12 +22,11 @@ def aislar_entorno(monkeypatch, tmp_path):
     import src.rf4.auditoria as auditoria_rf4
     import src.rf4.rutas as rutas_rf4
     import src.server.app as rf1
-    import src.vpn_rest_as.rf4 as rf4_vpn
 
     monkeypatch.setattr(rf1, "RUTA_BASE_DATOS", tmp_path / "rf1-aislada.sqlite3")
     monkeypatch.setattr(rf1, "RUTA_AUDITORIA", tmp_path / "rf1-audit.jsonl")
     monkeypatch.setattr(rutas_rf2, "RUTA_AUDITORIA_ACCESOS", tmp_path / "accesos-audit.jsonl")
-    for modulo in (auditoria_rf4, rutas_rf4, rf4_vpn):
+    for modulo in (auditoria_rf4, rutas_rf4):
         monkeypatch.setattr(modulo, "RUTA_AUDITORIA", tmp_path / "rf4-audit.jsonl")
 
 

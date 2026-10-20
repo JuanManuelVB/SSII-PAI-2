@@ -282,7 +282,7 @@ class CapturaTLSServidor(CapturaTLS):
         # El PID se guarda junto al PCAP, que Windows y WSL comparten en /mnt/c.
         # El shell se sustituye por tcpdump (exec) para poder pararlo con SIGINT.
         self._stderr = log.open("wb")
-        codigo = 'printf "%s\n" "$$" > "$1"; exec tcpdump -i any -nn -s 0 -U -w "$2" "tcp port 9443"'
+        codigo = 'printf "%s\n" "$$" > "$1"; exec tcpdump -Z root -i lo -nn -s 0 -U -w "$2" "tcp port 9443"'
         cmd = [wsl, "-u", "root", "--", "sh", "-c", codigo, "byodsec", ruta_linux + ".pid", ruta_linux]
         try:
             proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,

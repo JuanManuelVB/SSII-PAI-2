@@ -1,54 +1,17 @@
-# PKI de PAI2-STX
+# PKI de BYODSEC (camino A)
 
-## Qué es la PKI
+La CA corporativa firma los certificados X.509 del servidor de HTTPS y de cada dispositivo BYOD.
 
-Una PKI (Public Key Infrastructure) permite comprobar identidades mediante
-certificados X.509:
+- `pki/ca/ca.crt` — certificado público de la CA.
+- `pki/ca/ca.key` — **clave privada** de la CA, solo local y nunca incluida en ZIP.
+- `pki/server/server.crt` / `server.key` — identidad del servidor TLS 1.3.
+- `pki/clients/` — pares de identidad por dispositivo, vinculados a usuarios en SQLite.
+- `pki/clients/rf5/credenciales.csv` — contraseñas de laboratorio creadas localmente; no distribuir.
 
-```text
-CA corporativa
-    ├── certificado del gateway VPN
-    └── certificados de clientes BYOD
-```
+Desde WSL y en la raíz del proyecto: `bash laboratorio.sh preparar` genera el material solo si falta y precarga 300 identidades de laboratorio. Si ya tienes una CA y usuarios activos, **conserva su base de datos y sus claves**. No sustituyas CA o certificado del servidor por otros arbitrarios.
 
-La CA firma los certificados. Un cliente confía en un certificado porque puede
-validar su firma hasta la CA que conoce de antemano. La clave privada asociada
-al certificado nunca se comparte.
+Para emitir un certificado adicional a un usuario existente utiliza la opción **2 — Generar certificado** en el cliente Windows: el cliente crea una clave RSA 3072 local y envía solo su clave pública al servidor de registro HTTPS `8444`. La CA firma el certificado y SQLite registra el emparejamiento. Para entrar después usa el puerto `9443` que exige mTLS.
 
-En mTLS se validan los dos extremos:
+La autenticación tiene dos capas: (1) certificado del dispositivo válido y reconocido, (2) contraseña corporativa correcta más desafío firmado.
 
-1. El cliente valida el certificado del gateway.
-2. El gateway solicita y valida el certificado del cliente.
-
-Eso evita depender únicamente de una contraseña robada. Para el requisito RF2,
-el certificado del dispositivo será la primera capa y usuario/contraseña la
-segunda capa.
-
-## Preparar la PKI de laboratorio
-
-`bash laboratorio.sh instalar` lo hace automáticamente. A mano, desde `PAI2-STX`:
-
-```powershell
-python -m pki.scripts.pki crear-ca
-python -m pki.scripts.pki emitir-servidor
-python -m pki.scripts.pki emitir-cliente pdi001
-python -m pki.scripts.pki emitir-cliente pas001
-python -m pki.scripts.pki verificar pki/clients/pdi001/pdi001.crt
-```
-
-La CA se crea una sola vez y el comando no la sobrescribe. Para revocar:
-
-```powershell
-python -m pki.scripts.pki revocar pki/clients/pdi001/pdi001.crt
-python -m pki.scripts.pki verificar pki/clients/pdi001/pdi001.crt
-```
-
-El segundo `verificar` debe imprimir `REVOCADO/INVÁLIDO`. La CRL queda en
-`pki/ca/ca.crl.pem` y el inventario local de seriales revocados en
-`pki/ca/revoked.json`.
-
-## Seguridad
-
-Las claves privadas y certificados generados están ignorados por Git. La PKI
-creada aquí es para laboratorio; en producción la clave privada de la CA debe
-estar protegida por HSM o, como mínimo, cifrada y separada del gateway.
+Las claves de este laboratorio están sin cifrar en reposo para facilitar demostraciones; en producción deberían cifrarse y aislarse.

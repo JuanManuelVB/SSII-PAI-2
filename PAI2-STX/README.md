@@ -1,86 +1,63 @@
-# PAI2-STX · BYODSEC
+# BYODSEC · Camino A (TLS 1.3, mTLS y API REST)
 
-Acceso remoto *Road Warrior* para la Universidad U-Secure: VPN SSL/TLS
-(OpenVPN Access Server) controlada por un gateway propio con autenticación
-mutua TLS 1.3 (mTLS), contraseña y desafío firmado, cierre de sesión que
-desmonta el túnel y 300 usuarios corporativos (PDI, PAS e Investigadores).
+Proyecto de acceso corporativo seguro en **Windows + Ubuntu WSL2**. Esta edición es la limpia del **camino A aprobado por el profesor**: HTTPS/REST protegido mediante TLS 1.3 y autenticación mutua X.509 (mTLS). No implementa un túnel IP VPN; se ha retirado la integración no necesaria con OpenVPN Access Server.
 
-## Lanzar todo con un solo comando
+## Funciones que se conservan
 
-Requisitos: Windows con **WSL2 + Ubuntu 24.04 o 26.04** (o Ubuntu nativo),
-conexión a Internet y la contraseña de `sudo` de Ubuntu.
+- Alta administrativa **local** de usuarios PDI, PAS e Investigadores desde el cliente Windows (operación en WSL; NO existe endpoint público para crear cuentas).
+- CA corporativa, emparejamiento RF1 y certificados por dispositivo; precarga RF5 de 300 usuarios.
+- Inicio de sesión RF2 con certificado mTLS, desafío firmado y contraseña; sesión con token solo almacenado como hash en SQLite.
+- Acceso al recurso interno y envío de mensaje por HTTPS TLS 1.3; servidor confirma SHA-256.
+- Logout RF4 y comprobación de rechazo de token revocado HTTP 401.
+- Verificación TLS 1.3, auditoría, simulaciones de intentos no autorizados, capturas tcpdump/Wireshark.
+- Prueba RS3 de 300 identidades y sesiones activas con mensajes durante un periodo común; incluye control de concurrencia de logins, reintentos auditados y JSON de resultados. No equivale a 300 ordenadores físicos ni 300 túneles VPN.
 
-Desde **PowerShell**, en esta carpeta:
+## Si ya tenías el proyecto funcionando
 
-```powershell
-wsl bash laboratorio.sh
+**NO elimines tu carpeta de trabajo original.** Este ZIP es **código limpio sin secretos**: no incluye `data/rf1.sqlite3`, `pki/ca/ca.key`, `pki/server/server.key`, claves de clientes ni `credenciales.csv`. Esos archivos deben quedarse en tu PC. Haz una copia privada y luego actualiza el código conservando esos archivos. Si montas una carpeta nueva, copia allí *localmente*, sin subirlos a terceros, los datos/PKI anteriores y comprueba las rutas y certificados.
+
+Esta versión recompone los parches de las conversaciones anteriores a partir del **último ZIP completo aportado**, no de posibles ediciones más recientes realizadas solo en tu equipo. Antes de sobrescribir archivos locales nuevos, compáralos.
+
+## Primera instalación limpia (WSL)
+
+Desde Ubuntu WSL en la raíz del proyecto:
+
+```bash
+bash laboratorio.sh preparar
+bash laboratorio.sh servidor
 ```
 
-o, dentro de Ubuntu, `bash laboratorio.sh`. Sin argumentos el script:
+`preparar` crea el entorno virtual, instala dependencias, genera CA/certificados solo si faltan, y precarga 300 usuarios de laboratorio con contraseñas guardadas exclusivamente en `pki/clients/rf5/credenciales.csv`. Si existe una base SQLite sin su CA correspondiente se detiene para evitar romper identidades. **No regeneres una CA si ya registraste dispositivos antes.**
 
-1. Comprueba el sistema e instala dependencias (entorno Python en `~/.local/share/byodsec`).
-2. Crea la PKI corporativa y los **300 usuarios RF5** con su certificado.
-3. Instala y configura **OpenVPN Access Server** (HTTPS verificado, TLS 1.3, API REST) y un usuario VPN de prueba bloqueado por defecto.
-4. Arranca el **gateway mTLS** (`https://localhost:9443`), el **registro RF1** (`https://localhost:8444`) y el reconciliador RF4.
-5. Ejecuta **todas las pruebas** y guarda las evidencias en `evidencias/` (resumen en `evidencias/logs/resumen_pruebas.txt`).
-6. Abre el menú del cliente BYODSEC.
+En Windows, arranca con doble clic:
 
-Es idempotente: se puede volver a lanzar sin perder la CA, las cuentas ni las
-claves. La primera vez tarda varios minutos. Si WSL no tiene systemd activado,
-el script lo activa y pide ejecutar `wsl --shutdown` antes de relanzarlo.
-Mantén la ventana abierta mientras uses el laboratorio.
+1. `INICIAR_SERVIDOR_BYODSEC.cmd` (dos servicios WSL: HTTPS/mTLS `127.0.0.1:9443` y registro TLS `127.0.0.1:8444`).
+2. `INICIAR_CLIENTE_BYODSEC.cmd` (menú simplificado, opciones 1–11).
 
-Otras órdenes: `bash laboratorio.sh instalar | arrancar | probar | menu | estado | parar | entregar`
-y la opción `--sin-vpn` (todo salvo Access Server, útil para diagnóstico).
+No inicies dos copias de servidor a la vez: los puertos 9443 y 8444 solo permiten una instancia.
 
-## Qué prueba `laboratorio.sh probar`
+## Pruebas y evidencias
 
-| Prueba | Evidencia |
-|---|---|
-| 87 pruebas automáticas (pytest) aisladas | `evidencias/logs/pytest.txt`, `pytest_junit.xml` |
-| Auditoría de 300 usuarios, roles y certificados | `evidencias/logs/auditoria_rf1_rf5_pki.json` |
-| Ataques TLS controlados (extra +10 %) | `evidencias/ataques/tls_opcional.json` |
-| Solo TLS 1.3 en los servicios reales (versión y *cipher suite*) | `evidencias/logs/tls_servicios.json` |
-| Extremo a extremo real RF1 → RF2 → VPN → RF4 | `evidencias/logs/e2e_laboratorio.json` |
-| API REST de Access Server | salida de consola |
+Consulta **[docs/GUIA_DEMOSTRACIONES.md](docs/GUIA_DEMOSTRACIONES.md)**. Para la prueba 300 desde el cliente: `10 (Pruebas y Wireshark) -> 10 (Mantener sesiones)`; los resultados se guardan en `bench/resultados/sesiones_300.json`. Puedes ejecutar también:
 
-La relación completa requisito → código → prueba → evidencia está en
-[`docs/trazabilidad.md`](docs/trazabilidad.md), junto con las pruebas
-manuales que necesitan el túnel conectado con OpenVPN Connect.
-
-Documentación adicional:
-- [`docs/scripts.md`](docs/scripts.md): qué hace cada script y herramienta, dónde se ejecuta y qué produce.
-- [`docs/procedimientos_6_10.md`](docs/procedimientos_6_10.md): procedimientos paso a paso de RS2 (TLS 1.3), RS3 (300 conexiones y rendimiento), RS4 (Wireshark y auditoría) y el extra de ataques.
-
-## Estructura
-
-```text
-laboratorio.sh          único punto de entrada
-scripts/                pasos del laboratorio (1_… a 5_…), estado, parar, entregar
-scripts/manual/         capturas .pcap (RS4) y medidas iperf3 (RS3)
-src/server/             RF1: registro y emparejamiento de dispositivos
-src/rf2/  src/rf4/      RF2: login mTLS + contraseña + desafío · RF4: cierre
-src/rf5/                RF5: 300 usuarios y certificados
-src/vpn_rest_as/        integración REST con OpenVPN Access Server
-src/gateway/            gateway único TLS 1.3/mTLS y servidor de registro
-src/client/             cliente y menú de consola
-src/common/             SQLite, hash scrypt y rutas TLS comunes
-pki/scripts/pki.py      CA corporativa, emisión, revocación y CRL
-tools/                  auditoría, comprobación TLS, E2E, perfiles VPN, ataques
-tests/                  pruebas automáticas (pytest)
-docs/                   trazabilidad e informe
-evidencias/  bench/     resultados generados por las pruebas
+```bash
+bash laboratorio.sh auditar
+bash laboratorio.sh prueba300
+python -m tools.comprobar_tls --sin-access-server --json evidencias/logs/tls.json
 ```
 
-## Usar el laboratorio a mano
+Captura fiable de la prueba ejecutada *dentro de WSL2* (no aparecerá automáticamente en las interfaces de Windows):
 
-- Menú: `bash laboratorio.sh menu` (o desde Windows `py -m src.client.interfaz`).
-- Usuario de prueba: `rf5_inv_001`; su contraseña está **solo en local**, en `pki/clients/rf5/credenciales.csv`.
-- Perfil VPN: `~/.config/byodsec/clients/rf5_inv_001.ovpn` (`bash laboratorio.sh estado` muestra la ruta de Windows), para importarlo en OpenVPN Connect.
-- Panel de Access Server: `https://localhost:943/admin/` (usuario `openvpn`; contraseña en `~/.config/byodsec/laboratorio.env`).
+```bash
+mkdir -p "$HOME/byodsec_capturas"
+CAP="$HOME/byodsec_capturas/byodsec_$(date +%Y%m%d_%H%M%S).pcap"
+sudo tcpdump -Z "$USER" -i lo -nn -s 0 -U -w "$CAP" 'tcp port 9443'
+```
 
-## Seguridad y limitaciones
+Deja `tcpdump` ejecutándose, inicia la prueba, detenlo con Ctrl+C, y abre el archivo resultante con Wireshark desde `\\wsl$\Ubuntu\home\TU_USUARIO\byodsec_capturas\`. El filtro de visualización es `tcp.port == 9443`.
 
-- No se entregan claves, contraseñas, bases de datos ni perfiles: cada equipo genera los suyos. `bash laboratorio.sh entregar` crea `../PAI2-STX.zip` y comprueba que no contiene secretos.
-- Access Server gratuito admite **2 conexiones VPN simultáneas**: hay 300 cuentas con certificado, pero la prueba RS3 de 300 túneles exige licencia u otra infraestructura.
-- La PKI del gateway (mTLS) y la PKI interna de Access Server (túnel) son distintas. La vinculación es por identidad: la cuenta VPN solo se habilita tras un login RF2 válido de ese mismo usuario.
+## Seguridad y empaquetado
+
+El ZIP entregado excluye **bases reales, claves privadas, credenciales y capturas con datos sensibles**. Los archivos de estado se generan y conservan localmente. Si necesitas empaquetar otra versión de código sin secretos: `bash scripts/empaquetar_entrega.sh ../PAI2-STX_CAMINO_A_LIMPIO.zip`.
+
+Para el informe: el profesor autorizó el camino A. Se demuestra una pasarela REST cifrada, *no* el desmontaje de un túnel OpenVPN; RF4 revoca el token y cierra el cliente HTTPS.

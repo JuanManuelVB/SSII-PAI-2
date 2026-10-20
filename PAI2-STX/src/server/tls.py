@@ -1,4 +1,4 @@
-"""Creación del contexto TLS 1.3 del gateway VPN."""
+"""Creación del contexto TLS 1.3 del gateway seguro."""
 
 from __future__ import annotations
 

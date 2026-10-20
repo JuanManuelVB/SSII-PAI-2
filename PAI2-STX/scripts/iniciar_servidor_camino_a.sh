@@ -4,7 +4,7 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 1
-unset BYODSEC_VPN_REST BYODSEC_VPN_DEFAULT_DENY BYODSEC_AS_URL BYODSEC_AS_ADMIN_PASSWORD
+
 
 if [[ -x "$ROOT/.venv-wsl/bin/python" ]]; then
     PY="$ROOT/.venv-wsl/bin/python"
@@ -40,7 +40,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 echo "[BYODSEC] Python WSL: $PY"
-echo '[BYODSEC] Camino A: sin OpenVPN, no se regeneran certificados.'
+echo '[BYODSEC] Camino A: TLS 1.3/mTLS en 9443 y registro TLS 1.3 en 8444.'
 echo '[BYODSEC] Iniciando gateway TLS 1.3 con mTLS en 127.0.0.1:9443...'
 "$PY" -m src.gateway.ejecutar --host 127.0.0.1 --port 9443 &
 PIDS+=("$!")

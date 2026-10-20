@@ -1,7 +1,7 @@
 """Interfaz de consola interactiva BYODSEC.
 
 Ejecutar desde PAI2-STX:  python -m src.client.interfaz
-(o bien: bash laboratorio.sh menu, que arranca antes los servidores).
+(o bien: INICIAR_CLIENTE_BYODSEC.cmd desde Windows).
 """
 from __future__ import annotations
 
@@ -63,9 +63,7 @@ def cabecera(cliente: ClienteConsola) -> None:
         ("CONEXIÓN SEGURA", [
             ("5", "Iniciar sesión", "Certificado y contraseña corporativa"),
             ("6", "Consultar mi sesión", "Identidad, dispositivo y permisos"),
-            ("7", "Estado de la VPN" if os.getenv("BYODSEC_VPN_REST") == "1"
-             else "Acceder y enviar mensaje", "Estado de OpenVPN" if os.getenv("BYODSEC_VPN_REST") == "1"
-             else "Recurso protegido y mensaje cifrado"),
+            ("7", "Acceder y enviar mensaje", "Recurso protegido y mensaje cifrado"),
             ("8", "Cerrar sesión", "Revocar acceso y comprobar el rechazo"),
         ]),
         ("PRUEBAS Y EVIDENCIAS", [
@@ -352,7 +350,7 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
                         _captura_parar(captura)
             elif opcion == "13":
                 if Confirm.ask("¿Ejecutar seis intentos de acceso NO autorizados al gateway local?", default=False):
-                    _herramienta_wsl("tools.ataques_vpn_real", ["--json",
+                    _herramienta_wsl("tools.ataques_mtls_real", ["--json",
                                      "evidencias/ataques/prueba_ataques_desde_cliente.json"],
                                      "Intentos de acceso rechazados por TLS/mTLS y sesiones", 200)
             elif opcion == "14":
@@ -361,26 +359,6 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
         except Exception as exc:
             error_publico(exc)
         pausa()
-
-
-def vpn_interactivo(cliente: ClienteConsola) -> None:
-    datos = cliente.consultar_vpn()
-    consola.print(Panel(
-        f"Usuario: {datos.get('username', '-')}\n"
-        f"Conectado: {bool(datos.get('connected'))}\n"
-        f"Conexiones reales en Access Server: {datos.get('count', 0)}",
-        title='VPN · Estado verificado por API REST', border_style='cyan'))
-    tabla = Table(box=box.ROUNDED)
-    tabla.add_column('IP de VPN')
-    tabla.add_column('Cifrado de datos')
-    tabla.add_column('Conectado desde')
-    for c in datos.get('connections', []):
-        tabla.add_row(str(c.get('vpn_ip') or '-'), str(c.get('cipher') or '-'),
-                      str(c.get('connected_since') or '-'))
-    consola.print(tabla)
-    if not datos.get('connected'):
-        consola.print('[yellow]RF2 puede estar activo sin un túnel VPN conectado.\n'
-                      'Importa el perfil userlogin en OpenVPN Connect y vuelve a comprobar.[/]')
 
 
 def logout_interactivo(cliente: ClienteConsola) -> None:
@@ -397,7 +375,6 @@ def logout_interactivo(cliente: ClienteConsola) -> None:
         consola.print("[green]✓[/] Reutilización del token: HTTP 401 (rechazo esperado)")
     elif resultado.rechazo_comprobado is False:
         consola.print(f"[bold red]ALERTA: rechazo NO demostrado (HTTP {resultado.codigo_comprobacion})[/]")
-    consola.print("[dim]Con integración VPN activada, el servidor también solicita la desconexión por REST.[/]")
 
 
 def estadisticas_rf5() -> None:
@@ -503,8 +480,7 @@ def demo_completa(cliente: ClienteConsola) -> None:
         return
     try:
         consultar_interactivo(cliente)
-        if os.getenv("BYODSEC_VPN_REST") != "1":
-            recurso_interactivo(cliente)
+        recurso_interactivo(cliente)
         # No hay prompts: demostración continua; el usuario seleccionó previamente el modo demo.
         with consola.status("Cerrando sesión y probando token revocado..."):
             resultado = cliente.cerrar_sesion(comprobar_revocacion=True)
@@ -564,10 +540,7 @@ def main() -> None:
                 elif opcion == "6":
                     consultar_interactivo(cliente)
                 elif opcion == "7":
-                    if os.getenv("BYODSEC_VPN_REST") == "1":
-                        vpn_interactivo(cliente)
-                    else:
-                        recurso_interactivo(cliente)
+                    recurso_interactivo(cliente)
                 elif opcion == "8":
                     logout_interactivo(cliente)
                 elif opcion == "9":

@@ -16,10 +16,10 @@ Escenarios (todos contra el servicio en marcha):
 
 El servidor falso con CA desconocida y la reconexión tras revocación de
 certificado se complementan con ``tools.ataque_opcional`` y con las pruebas
-manuales del túnel real (ver docs/procedimientos_6_10.md).
+manuales del túnel real (ver docs/GUIA_DEMOSTRACIONES.md).
 
-Uso (con el gateway en marcha): python -m tools.ataques_vpn_real \
-    --json evidencias/ataques/vpn_real.json
+Uso (con el gateway en marcha): python -m tools.ataques_mtls_real \
+    --json evidencias/ataques/mtls_real.json
 """
 from __future__ import annotations
 
@@ -177,7 +177,7 @@ def main() -> int:
     ap.add_argument("--url", default="https://localhost:9443")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--puerto", type=int, default=9443)
-    ap.add_argument("--json", type=Path, default=RAIZ / "evidencias" / "ataques" / "vpn_real.json")
+    ap.add_argument("--json", type=Path, default=RAIZ / "evidencias" / "ataques" / "mtls_real.json")
     args = ap.parse_args()
 
     identidades = cargar_identidades()

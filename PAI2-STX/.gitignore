@@ -1,36 +1,34 @@
-# Python
-__pycache__/
-*.py[cod]
-.pytest_cache/
+# Entornos y caches
 .venv/
 .venv-wsl/
-
-# Estado local del laboratorio (se regenera con laboratorio.sh)
-data/*.sqlite3
-data/*.sqlite3-*
-data/backups/
-
-# PKI: nunca versionar claves, certificados emitidos ni contraseñas
-pki/**/*.key
-pki/**/*.csr
-pki/**/*.crt
-pki/**/*.pem
-pki/**/*.p12
+__pycache__/
+.pytest_cache/
+*.pyc
+.git/
+# PKI real, estado de las cuentas y secretos
+pki/ca/*.crt
+pki/ca/*.key
+pki/ca/*.pem
 pki/ca/revoked.json
-pki/clients/
-!pki/**/.gitkeep
-
-# VPN / Access Server
+pki/server/*.crt
+pki/server/*.key
+pki/clients/**
+!pki/clients/.gitkeep
+*.csr
+*.p12
+*.pfx
+*.ovpn
+credenciales.csv
+data/*.sqlite3*
+data/backups/
 .env
 .env.*
-*.ovpn
-
-# Evidencias generadas que pueden contener datos sensibles
-evidencias/logs/*.jsonl
-evidencias/pcap/*.pcap*
-
-# Paquetes y respaldos
+# Evidencias y informes locales
+evidencias/logs/*
+evidencias/pcap/*
+evidencias/ataques/*
+bench/resultados/*
+!**/.gitkeep
+*.log
 *.zip
-*.tgz
-*.tar
 _respaldo*
