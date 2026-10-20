@@ -1,0 +1,33 @@
+{
+  "fecha_utc": "2026-10-20T07:06:40.297182+00:00",
+  "tipo": "300_sesiones_aplicacion_TLS13_mTLS_NO_OpenVPN",
+  "objetivo_usuarios": 10,
+  "identidades_distintas": 10,
+  "duracion_periodo_comun_s": 10,
+  "preparacion_max_s": 360,
+  "sesiones_validas_en_barrera": 10,
+  "usuarios_completaron_periodo_con_mensajes": 10,
+  "mensajes_protegidos_confirmados": 40,
+  "errores_de_mensajes": 0,
+  "pico_conexiones_tcp_establecidas_gateway": 10,
+  "conexiones_tcp_medidas_en": "extremo cliente WSL hacia puerto gateway; pico muestreado",
+  "cierres_sesion_correctos": 10,
+  "tokens_rechazados_tras_logout": 10,
+  "errores_por_motivo": {},
+  "latencia_login_ms": {
+    "media": 250.87,
+    "p50": 215.73,
+    "p95": 343.36,
+    "max": 359.4
+  },
+  "latencia_mensaje_ms": {
+    "media": 66.88,
+    "p50": 61.97,
+    "p95": 96.61,
+    "max": 311.74
+  },
+  "duracion_total_s": 14.95,
+  "resultado": "APROBADO",
+  "alcance": "Sesiones REST autenticadas y mensajes sobre mTLS en WSL; no túneles IP VPN",
+  "nota": "300 sesiones autenticadas NO prueban 300 ordenadores físicos ni 300 VPN."
+}

@@ -20,9 +20,10 @@ def conectar_base_datos(
 ) -> sqlite3.Connection:
     """Abre SQLite con filas consultables por nombre y claves foráneas activas."""
     ruta.parent.mkdir(parents=True, exist_ok=True)
-    conexion = sqlite3.connect(ruta)
+    conexion = sqlite3.connect(ruta, timeout=30.0)
     conexion.row_factory = sqlite3.Row
     conexion.execute("PRAGMA foreign_keys = ON")
+    conexion.execute("PRAGMA busy_timeout = 30000")
     return conexion
 
 

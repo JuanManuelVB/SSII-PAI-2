@@ -276,7 +276,7 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
             "[bold cyan]7[/]  Verificar firma y vinculación de certificado\n"
             "[bold cyan]8[/]  Comprobar TLS 1.3 y versiones rechazadas\n"
             "[bold cyan]9[/]  Auditar los 300 usuarios y certificados\n"
-            "[bold cyan]10[/] Prueba de carga concurrente (10–300 sesiones)\n"
+            "[bold cyan]10[/] Mantener hasta 300 sesiones mTLS simultáneas\n"
             "[bold cyan]11[/] Cerrar sesión y comprobar HTTP 401\n"
             "[bold cyan]12[/] Demo guiada: captura, login, mensaje y logout\n"
             "[bold cyan]13[/] Simular accesos no autorizados\n"
@@ -316,12 +316,24 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
                                  "evidencias/logs/prueba_rf5_desde_cliente.json"],
                                  "Usuarios, roles, certificados y vínculos", 160)
             elif opcion == "10":
-                cantidad = Prompt.ask("Número de conexiones simultáneas", choices=["10", "50", "100", "200", "300"], default="10")
-                if not Confirm.ask(f"¿Ejecutar {cantidad} ciclos mTLS reales?", default=False):
+                cantidad = Prompt.ask("Usuarios con sesiones a la vez", choices=["10", "50", "100", "200", "300"], default="10")
+                segundos = Prompt.ask("Segundos manteniendo todas las sesiones (5-120)", default="30")
+                if not segundos.isdecimal() or not 5 <= int(segundos) <= 120:
+                    consola.print("[red]La duración debe estar entre 5 y 120 segundos.[/]")
                     continue
-                _herramienta_wsl("tools.carga_gateway", ["--usuarios", cantidad, "--json",
-                                 f"bench/resultados/cliente_{cantidad}.json"],
-                                 f"Carga concurrente con {cantidad} ciclos mTLS", 360)
+                if not Confirm.ask(f"¿Autenticar {cantidad} usuarios y mantener sus sesiones durante {segundos}s?", default=False):
+                    continue
+                consola.print("[cyan]La carga corre en Ubuntu WSL. Verás el avance y el resultado real aquí.[/]")
+                consola.print("[dim]Esta operación puede tardar varios minutos; no cierres el servidor.[/]")
+                resultado = ejecutar_en_wsl(
+                    "tools.carga_300_sesiones",
+                    ["--usuarios", cantidad, "--duracion", segundos, "--preparacion", "360",
+                     "--json", f"bench/resultados/sesiones_{cantidad}.json"],
+                    interactivo=True, tiempo_maximo=750)
+                if resultado.returncode == 0:
+                    consola.print("[bold green]PRUEBA SUPERADA: usuarios autenticados y mensajes verificados simultáneamente.[/]")
+                else:
+                    consola.print("[bold red]No se han demostrado todas las sesiones simultáneas.[/] Revisa el JSON de resultados.")
             elif opcion == "11":
                 logout_interactivo(cliente)
             elif opcion == "12":

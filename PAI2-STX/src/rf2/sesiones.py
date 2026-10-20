@@ -52,7 +52,8 @@ def inicializar_sesiones(ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> None:
 
 
 def crear_desafio(username: str, device_id: str, ruta: Path = RUTA_BASE_DATOS_POR_DEFECTO) -> tuple[str, str]:
-    inicializar_sesiones(ruta)
+    # El esquema ya se crea en el lifespan de FastAPI. Evitamos DDL por solicitud:
+    # 300 challenges simultáneos no deben competir por CREATE TABLE/TRIGGER.
     nonce = secrets.token_urlsafe(32)
     fecha_expiracion = _marca(_ahora() + timedelta(seconds=DURACION_DESAFIO_SEG))
     with conectar_base_datos(ruta) as conexion:

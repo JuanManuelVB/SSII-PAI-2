@@ -21,16 +21,6 @@ if not exist "pki\ca\ca.crt" (
 )
 set "BYODSEC_VPN_REST="
 set "BYODSEC_VPN_DEFAULT_DENY="
-echo ===================================================
-echo     BYODSEC  -  CLIENTE CAMINO A (Windows)
-echo ===================================================
-echo [1] Registrar dispositivo / emitir certificado RF1
- echo [2] Login con certificado y contrasena RF2
- echo [7] Demo RF2 + recurso + RF4
- echo [8] Ver certificados locales
- echo [9] Enviar datos cifrados al servidor
- echo [10] CENTRO DE PRUEBAS: crear usuarios, mensajes y Wireshark
- echo.
 py -m src.client.interfaz --url https://localhost:9443 --registro-url https://localhost:8444
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" (
