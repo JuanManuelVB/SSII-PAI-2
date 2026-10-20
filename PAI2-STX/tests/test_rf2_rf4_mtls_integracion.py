@@ -69,6 +69,17 @@ def test_login_logout_reales_por_tls13_mtls(escenario, tmp_path):
             token = login.json()["access_token"]
             cab = {"Authorization": f"Bearer {token}"}
             assert client.get("/api/v1/sessions/me", headers=cab).status_code == 200
+            # Aplicación protegida: datos del servidor al cliente y viceversa.
+            sin_token = client.get("/api/v1/resources/demo")
+            assert sin_token.status_code == 401
+            recurso = client.get("/api/v1/resources/demo", headers=cab)
+            assert recurso.status_code == 200
+            assert recurso.json()["username"] == "pdi_test"
+            mensaje = "Prueba cifrada Windows a Ubuntu"
+            eco = client.post("/api/v1/resources/echo", headers=cab, json={"mensaje": mensaje})
+            assert eco.status_code == 200
+            import hashlib
+            assert eco.json()["sha256"] == hashlib.sha256(mensaje.encode()).hexdigest()
             # Token robado, pero presentado con OTRO certificado igualmente
             # válido para la misma CA: se rechaza la sesión por identidad TLS.
             contexto_otro = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -82,6 +93,7 @@ def test_login_logout_reales_por_tls13_mtls(escenario, tmp_path):
                 assert otro.get("/api/v1/sessions/me", headers=cab).status_code == 401
             assert client.post("/api/v1/sessions/logout", headers=cab).status_code == 200
             assert client.get("/api/v1/sessions/me", headers=cab).status_code == 401
+            assert client.get("/api/v1/resources/demo", headers=cab).status_code == 401
 
         # Una conexión TLS con certificado ausente debe ser rechazada en handshake.
         sin_certificado = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)

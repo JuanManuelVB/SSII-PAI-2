@@ -6,6 +6,7 @@ existentes; no duplica la autenticación del servidor ni modifica RF1/RF2/RF4.
 from __future__ import annotations
 
 import base64
+import hashlib
 import os
 import re
 import ssl
@@ -232,6 +233,29 @@ class ClienteConsola:
         exigir_correcta(respuesta)
         datos = respuesta.json()
         return {campo: datos.get(campo) for campo in ("username", "device_id", "role", "expires_at")}
+
+    def consultar_recurso(self) -> dict:
+        """Solicita un documento de prueba protegido por RF2 y certificado mTLS."""
+        headers = self._autorizar()
+        assert self._http is not None
+        respuesta = self._http.get("/api/v1/resources/demo", headers=headers)
+        exigir_correcta(respuesta)
+        return respuesta.json()
+
+    def enviar_mensaje_seguro(self, mensaje: str) -> dict:
+        """Demuestra datos reales al servidor y verifica el resumen de vuelta."""
+        if not mensaje or len(mensaje) > 2048:
+            raise ErrorConsola("El mensaje de prueba debe tener entre 1 y 2048 caracteres")
+        headers = self._autorizar()
+        assert self._http is not None
+        respuesta = self._http.post("/api/v1/resources/echo", json={"mensaje": mensaje}, headers=headers)
+        exigir_correcta(respuesta)
+        datos = respuesta.json()
+        digest = hashlib.sha256(mensaje.encode("utf-8")).hexdigest()
+        if (datos.get("sha256") != digest or datos.get("bytes") != len(mensaje.encode("utf-8"))
+                or datos.get("username") != self.usuario):
+            raise ErrorConsola("La respuesta del servidor no coincide con los datos enviados")
+        return datos
 
     def consultar_vpn(self) -> dict:
         """Consulta por REST las conexiones VPN del usuario ligado a RF2."""

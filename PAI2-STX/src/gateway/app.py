@@ -22,6 +22,7 @@ from fastapi import FastAPI
 
 from src.common.base_datos import inicializar_base_datos
 from src.rf2.rutas import router as rf2_router
+from src.recursos.rutas import router as recursos_router
 from src.rf2.sesiones import inicializar_sesiones
 
 
@@ -47,6 +48,7 @@ def crear_app(vpn_rest: bool | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     aplicacion.include_router(rf2_router)
+    aplicacion.include_router(recursos_router)
     if vpn_rest:
         from src.vpn_rest_as.rf4 import router as rf4_vpn_router
         from src.vpn_rest_as.rutas import router as vpn_router
