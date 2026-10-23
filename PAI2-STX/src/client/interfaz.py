@@ -279,9 +279,11 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
             "[bold cyan]12[/] Demo guiada: captura, login, mensaje y logout\n"
             "[bold cyan]13[/] Simular accesos no autorizados\n"
             "[bold cyan]14[/] Exportar auditoría a CSV\n"
+            "[bold cyan]15[/] RS3: comparar rendimiento TLS/mTLS vs HTTP local\n"
+            "[bold cyan]16[/] Extra +10%: suplantación de servidor (CA falsa)\n"
             "[bold cyan]0[/]  Volver al menú principal",
             title="PRUEBAS Y WIRESHARK", border_style="bright_cyan"))
-        opcion = Prompt.ask("Prueba", choices=[str(i) for i in range(15)], default="4")
+        opcion = Prompt.ask("Prueba", choices=[str(i) for i in range(17)], default="4")
         if opcion == "0":
             return
         try:
@@ -356,6 +358,31 @@ def menu_laboratorio(cliente: ClienteConsola, registro_url: str, ca: Path,
             elif opcion == "14":
                 _herramienta_wsl("tools.exportar_auditoria_csv", [],
                                  "Exportación local de registros depurados")
+            elif opcion == "15":
+                cantidad = Prompt.ask("Usuarios a comparar", choices=["10", "50", "100", "200", "300"], default="10")
+                mensajes = Prompt.ask("Mensajes por usuario y escenario (1-200)", default="20")
+                tamano = Prompt.ask("Bytes por mensaje (1-2048)", default="256")
+                repeticiones = Prompt.ask("Repeticiones (1-5; se alterna el orden)", default="2")
+                if not (mensajes.isdecimal() and 1 <= int(mensajes) <= 200
+                        and tamano.isdecimal() and 1 <= int(tamano) <= 2048
+                        and repeticiones.isdecimal() and 1 <= int(repeticiones) <= 5):
+                    consola.print("[red]Revisa los rangos de mensajes, bytes y repeticiones.[/]")
+                    continue
+                if not Confirm.ask("¿Comparar tráfico real cifrado y HTTP local de laboratorio?", default=False):
+                    continue
+                resultado = ejecutar_en_wsl(
+                    "tools.comparativa_cifrado",
+                    ["--usuarios", cantidad, "--mensajes", mensajes, "--bytes", tamano,
+                     "--repeticiones", repeticiones, "--json", f"bench/resultados/comparativa_{cantidad}.json"],
+                    interactivo=True, tiempo_maximo=1800)
+                if resultado.returncode == 0:
+                    consola.print(f"[bold green]RS3: COMPARATIVA COMPLETADA[/] · bench/resultados/comparativa_{cantidad}.json")
+                else:
+                    consola.print("[red]Comparativa incompleta. No presentes porcentajes de corridas con errores.[/]")
+            elif opcion == "16":
+                if Confirm.ask("¿Probar rechazo de servidor falso, cliente sin certificado y TLS 1.2 en loopback?", default=False):
+                    _herramienta_wsl("tools.ataque_opcional", [],
+                                     "CA no confiable, mTLS obligatorio y TLS obsoleto (simulación aislada)", 180)
         except Exception as exc:
             error_publico(exc)
         pausa()

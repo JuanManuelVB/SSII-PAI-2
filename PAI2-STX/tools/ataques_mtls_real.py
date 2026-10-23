@@ -14,9 +14,8 @@ Escenarios (todos contra el servicio en marcha):
   5. Token robado reutilizado con OTRO certificado -> HTTP 401
   6. Reutilización del token tras logout (RF4)     -> HTTP 401
 
-El servidor falso con CA desconocida y la reconexión tras revocación de
-certificado se complementan con ``tools.ataque_opcional`` y con las pruebas
-manuales del túnel real (ver docs/GUIA_DEMOSTRACIONES.md).
+El servidor falso con CA desconocida y la suplantación de servidor con CA falsa se complementan con
+``tools.ataque_opcional``. No existe un túnel OpenVPN en este camino A.
 
 Uso (con el gateway en marcha): python -m tools.ataques_mtls_real \
     --json evidencias/ataques/mtls_real.json
@@ -185,6 +184,23 @@ def main() -> int:
         raise SystemExit("Se necesitan al menos 2 identidades RF5 con certificado y contraseña.")
     a, b = identidades[0], identidades[1]
 
+    # Control positivo imprescindible: un servicio apagado NO demuestra seguridad.
+    control = _login(args.url, a)
+    if control.status_code != 200:
+        raise SystemExit(f"CONTROL POSITIVO FALLIDO: RF2 devolvió HTTP {control.status_code}.")
+    token_control = control.json()["access_token"]
+    with httpx.Client(verify=_ctx(a["cert"], a["key"]), base_url=args.url,
+                      timeout=15.0, trust_env=False) as cli:
+        verificado = cli.get("/api/v1/sessions/me", headers={"Authorization": f"Bearer {token_control}"})
+        if verificado.status_code != 200:
+            raise SystemExit(f"CONTROL POSITIVO FALLIDO: /me HTTP {verificado.status_code}.")
+        try:
+            cli.post("/api/v1/sessions/logout", headers={"Authorization": f"Bearer {token_control}"})
+        except httpx.HTTPError:
+            # El control se demuestra con GET /me; logout separado del ensayo.
+            pass
+    print("[ATAQUES] Control positivo superado: un usuario válido accede con mTLS + RF2.", flush=True)
+
     pruebas = {
         "cliente_sin_certificado_mtls": sin_certificado_mtls(args.url, args.host, args.puerto),
         "cliente_certificado_ca_ajena": certificado_ca_ajena(args.url, args.host, args.puerto),
@@ -197,6 +213,7 @@ def main() -> int:
         "fecha_utc": datetime.now(timezone.utc).isoformat(),
         "objetivo": args.url,
         "entorno": "gateway del laboratorio en marcha, TLS 1.3 + mTLS",
+        "control_positivo": "usuario autorizado aceptado con mTLS y RF2 (HTTP 200)",
         "resumen": {n: bool(r["rechazado"]) for n, r in pruebas.items()},
         "detalle": pruebas,
         "aprobado": all(r["rechazado"] for r in pruebas.values()),

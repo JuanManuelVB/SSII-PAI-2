@@ -61,3 +61,17 @@ Deja `tcpdump` ejecutándose, inicia la prueba, detenlo con Ctrl+C, y abre el ar
 El ZIP entregado excluye **bases reales, claves privadas, credenciales y capturas con datos sensibles**. Los archivos de estado se generan y conservan localmente. Si necesitas empaquetar otra versión de código sin secretos: `bash scripts/empaquetar_entrega.sh ../PAI2-STX_CAMINO_A_LIMPIO.zip`.
 
 Para el informe: el profesor autorizó el camino A. Se demuestra una pasarela REST cifrada, *no* el desmontaje de un túnel OpenVPN; RF4 revoca el token y cierra el cliente HTTPS.
+
+## Comparativa RS3 y extra opcional (añadidos)
+
+Desde el cliente: **10 → 15** compara HTTPS/TLS 1.3/mTLS con HTTP local en
+127.0.0.1:9080; prepara y apaga el servidor HTTP automáticamente. El JSON
+incluye latencia media/p95, throughput, errores y CPU/RAM disponibles. Ejecutar
+con 10 usuarios primero y luego hasta 300. Las mediciones sin ambos escenarios
+completados no son válidas. Consulta `docs/GUIA_DEMOSTRACIONES.md` §6.
+
+Para el **+10 %**, las opciones **10 → 13** (seis rechazos en el gateway real) y
+**10 → 16** (servidor impostor con CA ajena y otros escenarios TLS aislados)
+generan JSON en `evidencias/ataques/`. Demuestran protección contra los
+intentos ensayados, no imposibilidad universal de ataques. Más información
+con pruebas y limitaciones en la guía §7.

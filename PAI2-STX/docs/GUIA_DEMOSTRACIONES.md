@@ -44,3 +44,85 @@ Menú 10: comprobación TLS, auditoría de RF5, accesos no autorizados y exporta
 ```
 
 No aportar al informe los CSV de contraseñas, archivos `.key`, certificados privados, logs con tokens o datos personales. Redactar los valores estadísticos y capturas necesarias, ocultando identificadores sensibles.
+
+## 6. RS3b — Comparativa real de rendimiento con y sin TLS/mTLS
+
+**Estado:** el ZIP original no contenía `tools/comparativa_cifrado.py` ni
+`tools/servidor_sin_cifrar.py`. Esta versión incluye ambas herramientas y la
+opción **10 → 15** del cliente BYODSEC.
+
+1. Arrancar `INICIAR_SERVIDOR_BYODSEC.cmd` y dejarlo abierto. No es necesario
+   arrancar manualmente el servidor HTTP sin cifrar: la prueba lo levanta solo
+   en `127.0.0.1:9080` y lo apaga cuando termina.
+2. Desde `INICIAR_CLIENTE_BYODSEC.cmd` elegir **10 → 15**. Introducir 10 usuarios,
+   20 mensajes, 256 bytes, 2 repeticiones. Si sale todo correcto, repetir con
+   50, 100, 200, 300 usuarios.
+3. La evidencia queda en `bench/resultados/comparativa_10.json` (y archivos
+   correspondientes a cada carga). No publicar los ficheros con contraseñas o claves.
+
+También es posible lanzarla desde WSL, en la raíz del proyecto:
+
+```bash
+.venv-wsl/bin/python -m tools.comparativa_cifrado --usuarios 10 --mensajes 20 --bytes 256 --repeticiones 2 --json bench/resultados/comparativa_10.json
+```
+
+Se prepara **una sesión RF2/mTLS por identidad distinta** antes de iniciar el
+cronómetro. Cada usuario envía los mismos mensajes sintéticos ASCII al recurso
+HTTPS protegido (`/api/v1/resources/echo`) y al servidor HTTP local (`/echo`).
+Ambos calculan SHA-256 y longitud. Las conexiones se mantienen por usuario;
+la latencia y el throughput se miden solo durante la comunicación y se alterna
+el orden de los escenarios en las repeticiones.
+
+**Criterio de validez:** los dos escenarios deben confirmar TODOS los mensajes;
+si hay cualquier error no se calcula el porcentaje de sobrecoste para esa
+corrida. No extrapolar números de ejecuciones fallidas.
+
+- **Latencia:** incremento = `(latencia_TLS/latencia_HTTP - 1)*100`.
+- **Throughput:** pérdida = `(1 - throughput_TLS/throughput_HTTP)*100`.
+- **CPU/RAM:** la herramienta mide el servidor HTTP automáticamente; para
+  medir el gateway se puede pasar `--pid-tls PID_GATEWAY_EN_WSL` desde consola.
+  Sin PID se reporta `null` (no se inventa el dato). La CPU puede exceder 100%
+  si un proceso consume varios núcleos; se expresa respecto a un núcleo.
+- **Limitación:** se comparan *rutas REST reales*; en TLS también hay validación
+  de sesión y certificado, ausente en HTTP. La diferencia NO es atribuible
+  únicamente a la criptografía. No se mide encapsulación VPN IP, ni 300
+  máquinas físicas, ni rendimiento de Internet (es loopback WSL2).
+
+Opcionalmente, para mostrar la diferencia de confidencialidad en Wireshark,
+realizar una captura autorizada sobre `lo` de WSL con filtro
+`tcp port 9443 or tcp port 9080`. Enviar un texto **ficticio** de prueba y
+comprobar que el HTTP lo muestra en claro y el HTTPS no. El benchmarking usa
+contenido sintético y no contraseñas.
+
+## 7. Objetivo opcional (+10 %) — resistencia comprobable a ataques
+
+No se puede demostrar que sea *imposible* cualquier ataque. Se pueden aportar
+pruebas reproducibles de **rechazo de técnicas concretas** en un laboratorio
+cerrado y capturas que demuestren confidencialidad en tránsito.
+
+Con el servidor HTTPS real levantado, ejecutar desde el cliente **10 → 13**:
+
+- Cliente sin certificado: servidor deniega canal/autorización.
+- Certificado de una CA distinta: rechazo durante TLS.
+- Contraseña incorrecta, con certificado legítimo: HTTP 401.
+- Intento de usar la contraseña de otro usuario: HTTP 401.
+- Token sustraído probado desde otro certificado: HTTP 401.
+- Reutilización de token después de logout: HTTP 401.
+
+Evidencia: `evidencias/ataques/prueba_ataques_desde_cliente.json`.
+
+Para probar además la **suplantación de servidor**, entrar en **10 → 16**.
+Este escenario levanta en el loopback un servidor TLS impostor firmado por
+una CA desconocida y comprueba que el cliente no entrega el mensaje de prueba;
+también simula ausencia de certificado y negociación TLS 1.2. Usa certificados
+efímeros *diferentes* de los del proyecto. Evidencia:
+`evidencias/ataques/tls_opcional.json`.
+
+Capturar el tráfico de una sesión válida en `lo` (puerto 9443) con Wireshark:
+comprobar ClientHello/TLS 1.3 y datos cifrados (`Application Data`) y que el
+mensaje de prueba no aparece en claro. Usar una captura separada si se necesita
+mostrar tráfico HTTP deliberadamente no cifrado en 9080.
+
+**No afirmar:** que se ha realizado una intrusión MITM completa en una red
+pública, que el proyecto dispone de un túnel OpenVPN, que ningún ataque
+es posible, ni que la ausencia de texto visible por sí sola verifica mTLS.

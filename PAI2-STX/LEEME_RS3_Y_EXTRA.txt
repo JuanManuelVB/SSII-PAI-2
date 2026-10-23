@@ -1,0 +1,33 @@
+PAI2-STX - AMPLIACION RS3 y EXTRA (+10%) - Camino A
+===================================================
+
+IMPORTANTE: No sustituya la instalación local eliminando sus claves, cuentas
+ni certificados. La entrega es CODIGO SIN SECRETOS: no contiene la base de
+datos, el CSV de contraseñas ni las claves privadas que ya tiene en el PC.
+
+INSTALAR EL PARCHE SOBRE SU CARPETA ACTUAL
+1. Haga una copia de seguridad de la carpeta PAI2-STX.
+2. Cierre el cliente y el servidor.
+3. Extraiga el ZIP PARCHE en la carpeta que CONTIENE su PAI2-STX actual.
+   Combine carpetas y reemplace solamente los archivos del parche.
+   NO BORRE ni regenere data/, pki/, credenciales.csv o .venv-wsl.
+4. Abra INICIAR_SERVIDOR_BYODSEC.cmd (con la instalación WSL ya preparada).
+5. Abra INICIAR_CLIENTE_BYODSEC.cmd.
+
+COMPARATIVA RS3: menú principal 10 -> prueba 15.
+La prueba inicia y apaga automaticamente 127.0.0.1:9080 para la linea base
+HTTP; NO es necesario tener abierto otro servidor HTTP.
+Ejemplo: 10 usuarios / 20 mensajes / 256 bytes / 2 repeticiones.
+Resultados: bench/resultados/comparativa_10.json.
+Aumentar despues a 50/100/200/300 usuarios si todo funciona.
+
+EXTRA +10%: 10 -> 13 rechazos reales (gateway encendido); 10 -> 16 prueba
+adicional de servidor TLS impostor (CA desconocida) en loopback.
+Evidencias en evidencias/ataques/*.json. Capturas reales de mensajes TLS
+con Wireshark/tcpdump, ver docs/GUIA_DEMOSTRACIONES.md.
+
+DISTINCION: Camino A es API REST sobre HTTPS/TLS 1.3 con mTLS.
+No equivale a un túnel IP OpenVPN ni demuestra que cualquier ataque sea imposible.
+Las pruebas demuestran que se rechazan casos concretos en laboratorio.
+
+Ver docs/GUIA_DEMOSTRACIONES.md secciones 6 y 7.

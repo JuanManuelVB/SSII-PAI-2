@@ -1,5 +1,5 @@
 {
-  "fecha_utc": "2026-10-20T10:06:50.458675+00:00",
+  "fecha_utc": "2026-10-22T21:28:51.302282+00:00",
   "tipo": "300_sesiones_aplicacion_TLS13_mTLS_NO_OpenVPN",
   "objetivo_usuarios": 300,
   "autenticaciones_en_paralelo_durante_preparacion": 6,
@@ -13,7 +13,7 @@
   "preparacion_max_s": 360,
   "sesiones_validas_en_barrera": 300,
   "usuarios_completaron_periodo_con_mensajes": 300,
-  "mensajes_protegidos_confirmados": 2483,
+  "mensajes_protegidos_confirmados": 2492,
   "errores_de_mensajes": 0,
   "pico_conexiones_tcp_establecidas_gateway": 300,
   "conexiones_tcp_medidas_en": "extremo cliente WSL hacia puerto gateway; pico muestreado",
@@ -21,18 +21,18 @@
   "tokens_rechazados_tras_logout": 300,
   "errores_por_motivo": {},
   "latencia_login_ms": {
-    "media": 654.52,
-    "p50": 470.06,
-    "p95": 1627.79,
-    "max": 3558.78
+    "media": 530.17,
+    "p50": 396.24,
+    "p95": 1433.73,
+    "max": 2428.74
   },
   "latencia_mensaje_ms": {
-    "media": 1199.58,
-    "p50": 606.12,
-    "p95": 5003.71,
-    "max": 5355.0
+    "media": 1146.52,
+    "p50": 732.78,
+    "p95": 4131.33,
+    "max": 5862.47
   },
-  "duracion_total_s": 133.82,
+  "duracion_total_s": 114.13,
   "resultado": "APROBADO",
   "alcance": "Sesiones REST autenticadas y mensajes sobre mTLS en WSL; no túneles IP VPN",
   "nota": "300 sesiones autenticadas NO prueban 300 ordenadores físicos ni 300 VPN."
